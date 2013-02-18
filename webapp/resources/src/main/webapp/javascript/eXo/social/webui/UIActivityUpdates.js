@@ -30,12 +30,14 @@
       document.cookie = name + "=" + escape(value) + expiredays + path;
     },
 	  resetCookie: function(cookieKey, value) {
+     	console.log('resetCookie');
 	    cookieKey = $.trim(cookieKey); 
 	    UIActivityUpdates.setCookies(cookieKey, '', -365);
 	    UIActivityUpdates.setCookies(cookieKey, value, 365);
 		},
 			  
 	  init: function (inputs) {
+	    console.log('init');
 	    //
 	    var form = UIActivityUpdates;
 	    
@@ -58,9 +60,9 @@
 	    }
     
       //
-      var lastUpdatedActivitiesNumKey = form.LAST_UPDATED_ACTIVITIES_NUM.replace(form.TAB_PART, form.selectedMode);
-	    lastUpdatedActivitiesNumKey = lastUpdatedActivitiesNumKey.replace(form.REMOTE_ID_PART, form.currentRemoteId);
-	    form.resetCookie(lastUpdatedActivitiesNumKey, form.numberOfUpdatedActivities);
+      //var lastUpdatedActivitiesNumKey = form.LAST_UPDATED_ACTIVITIES_NUM.replace(form.TAB_PART, form.selectedMode);
+	  //  lastUpdatedActivitiesNumKey = lastUpdatedActivitiesNumKey.replace(form.REMOTE_ID_PART, form.currentRemoteId);
+	  //  form.resetCookie(lastUpdatedActivitiesNumKey, form.numberOfUpdatedActivities);
 
       
       //
@@ -71,6 +73,7 @@
       });
 	
 	    function isScrolledIntoView() {
+     	  console.log('isScrolledIntoView');
 	      var docViewTop = $(window).scrollTop();
 	      var docViewBottom = docViewTop + $(window).height();
 	      var elem = $('#UIActivitiesLoader').find('.UpdatedActivity:last');
@@ -115,13 +118,13 @@
 	   
 	       if( cookieName && cookieTime && cookieName == escape(location.href) &&  Math.abs(now - cookieTime) <= 5 ) {
 	         // set last Updated Number onto cookie
-	         var lastUpdatedActivitiesNumKey = form.LAST_UPDATED_ACTIVITIES_NUM.replace(form.TAB_PART, form.selectedMode);
-			     lastUpdatedActivitiesNumKey = lastUpdatedActivitiesNumKey.replace(form.REMOTE_ID_PART, form.currentRemoteId);
-			     form.resetCookie(lastUpdatedActivitiesNumKey, form.numberOfUpdatedActivities);
+	         //var lastUpdatedActivitiesNumKey = form.LAST_UPDATED_ACTIVITIES_NUM.replace(form.TAB_PART, form.selectedMode);
+			 //    lastUpdatedActivitiesNumKey = lastUpdatedActivitiesNumKey.replace(form.REMOTE_ID_PART, form.currentRemoteId);
+			 //    form.resetCookie(lastUpdatedActivitiesNumKey, form.numberOfUpdatedActivities);
 			     
-		       if (form.numberOfUpdatedActivities == 0) {
-	           form.resetCookiesOnTabs();
-			     }
+		     //  if (form.numberOfUpdatedActivities == 0) {
+	         //  form.resetCookiesOnTabs();
+			 //    }
 	       }   
 			 };
 			           
@@ -140,7 +143,7 @@
 			 var refresh_prepare = 1;
 			
 		   $(window).unload(function(){
-		     prepareForRefresh();
+		     //prepareForRefresh();
 		   }); 
 			           
 			 $(window).load(function() {
@@ -149,6 +152,7 @@
 	  
 	  },
 	  unMarkedAsUpdate : function() {
+  	    console.log('unMarkedAsUpdate');
 	    var form = UIActivityUpdates;
 	    var updatedEls = $('#UIActivitiesLoader').find('.UpdatedActivity');
 	    
@@ -187,7 +191,7 @@
 			  return;
 			}
 			
-			console.log('run again');
+			console.log('initCookiesForFirstRun');
 			// init timer
 			form.clientTimerAtStart = new Date().getTime();
       form.currentServerTime = currentServerTime*1;
@@ -200,19 +204,23 @@
 			form.resetCookie(currentSelectedTabCookieKey, form.ALL);
 	  },
 	  removeUpdateInfo : function() {
+	    console.log('removeUpdateInfo');
 	    var updatedEls = $('#UIActivitiesLoader').find('.UpdatedActivity');
 	    var updatedInfoBox = $('#UIActivitiesLoader').find('.UpdateInfo');
       updatedEls.removeClass('UpdatedActivity');
       updatedInfoBox.remove();
 	  },
 	  setFromCookie : function(from_key, to_key) {
+	    console.log('setFromCookie');
 	    var to_value = eXo.core.Browser.getCookie(to_key);
 	    UIActivityUpdates.resetCookie(from_key, to_value);
 	  },
 	  setToCookie : function(to_key, value) {
+	    console.log('setToCookie');
 	    UIActivityUpdates.resetCookie(to_key, value);
 	  },
 	  initValueOnTabs : function( affectedFields ) { // FIELDS
+	    console.log('initValueOnTabs');
 	    if ( affectedFields.length === 0 ) return;
 	    
 	    var form = UIActivityUpdates;
@@ -248,6 +256,7 @@
 	    });
 	  },
 	  calculateServerTime : function() {
+	    console.log('calculateServerTime');
 	    var form = UIActivityUpdates;
 	    var currentClientTime = new Date().getTime();
 	    var duration = currentClientTime - form.clientTimerAtStart;

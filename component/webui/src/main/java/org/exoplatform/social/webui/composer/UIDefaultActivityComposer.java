@@ -35,6 +35,7 @@ import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIComponent;
+import org.exoplatform.webui.core.UIContainer;
 import org.exoplatform.webui.event.Event;
 
 /**
@@ -86,10 +87,13 @@ public class UIDefaultActivityComposer extends UIActivityComposer {
       activity.setType(UIDefaultActivity.ACTIVITY_TYPE);
       Utils.getActivityManager().saveActivityNoReturn(ownerIdentity, activity);
 
+      //
+      uiUserActivitiesDisplay.setPostActivity(true);
+
       if (uiUserActivitiesDisplay.getSelectedDisplayMode() == DisplayMode.MY_SPACE) {
         uiUserActivitiesDisplay.setSelectedDisplayMode(DisplayMode.ALL_ACTIVITIES);
-      } else if (uiUserActivitiesDisplay.getSelectedDisplayMode() == DisplayMode.ALL_ACTIVITIES) {
-        uiUserActivitiesDisplay.init();
+      //} else if (uiUserActivitiesDisplay.getSelectedDisplayMode() == DisplayMode.ALL_ACTIVITIES) {
+      //  uiUserActivitiesDisplay.init();
       }
     }
   }
