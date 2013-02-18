@@ -24,6 +24,7 @@ import javax.servlet.http.Cookie;
 import org.apache.commons.lang.ArrayUtils;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.portal.application.PortalRequestContext;
+import org.exoplatform.portal.application.RequestNavigationData;
 import org.exoplatform.portal.mop.SiteType;
 import org.exoplatform.portal.mop.user.UserNode;
 import org.exoplatform.portal.webui.util.Util;
@@ -59,6 +60,12 @@ public class Utils {
   /** . */
   public static final String NOT_SEEN_ACTIVITIES_COOKIES = "exo_social_not_seen_activities_%s";
   public static final String SEEN_ACTIVITIES_COOKIES = "exo_social_seen_activities_%s";
+  
+  /** */
+  private static RequestNavigationData lastRequestNavData = null;
+  
+  /** */
+  private static RequestNavigationData currentRequestNavData = null;
   
   /**
    * Gets remote id of owner user (depends on URL: .../remoteId). If owner user is null, return viewer remote id
@@ -407,5 +414,29 @@ public class Utils {
         }
     }
     return sb.toString();
+  }
+  
+  /**
+   * 
+   * @param requestNavData
+   */
+  public static void setCurrentNavigationData(RequestNavigationData requestNavData) {
+    lastRequestNavData = currentRequestNavData;
+    currentRequestNavData = requestNavData;
+  }
+
+  /**
+   * Checks the page in refresh context or switch from other one to it.
+   * 
+   * @return IF refresh TRUE; Otherwise FALSE
+   * 
+   */
+  public static boolean isRefreshPage() {
+    
+    if (lastRequestNavData == null && currentRequestNavData == null) {
+      return false;
+    }
+    
+    return lastRequestNavData.equals(currentRequestNavData);
   }
 }
