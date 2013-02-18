@@ -70,7 +70,7 @@ public class UIUserActivitiesDisplay extends UIForm {
 
   private Object locker = new Object();
   private Locale currentLocale = null;
-  private boolean isRefreshed;
+  private boolean isChangedMode;
   private boolean postActivity;
 
   public enum DisplayMode {
@@ -252,18 +252,20 @@ public class UIUserActivitiesDisplay extends UIForm {
                                                     Utils.getViewerRemoteId());
     String lastVisitedMode = Utils.getCookies(lastVisitedModeCookieKey);
     
-    this.isRefreshed = lastVisitedMode == null ? true : this.selectedDisplayMode.toString().equals(lastVisitedMode.trim());   
+    this.isChangedMode = lastVisitedMode == null ? true : this.selectedDisplayMode.toString().equals(lastVisitedMode.trim());   
+    boolean refreshPage = Utils.isRefreshPage();
     
+    this.isChangedMode = refreshPage && this.isChangedMode;
     //
     
-    activitiesContainer.setNumberOfUpdatedActivities(getActivitiesUpdatedNum(this.isRefreshed));
+    activitiesContainer.setNumberOfUpdatedActivities(getActivitiesUpdatedNum(this.isChangedMode));
     
     //
     activitiesLoader.init();
   }
 
-  public void setRefreshed(boolean isRefreshed) {
-    this.isRefreshed = isRefreshed;
+  public void setChangedMode(boolean changedMode) {
+    this.isChangedMode = changedMode;
   }
 
   public static class ChangeDisplayModeActionListener extends EventListener<UIUserActivitiesDisplay> {
@@ -280,7 +282,7 @@ public class UIUserActivitiesDisplay extends UIForm {
         uiUserActivities.setSelectedDisplayMode(selectedDisplayMode);
         uiUserActivities.init();
         
-        uiUserActivities.setRefreshed(false);
+        uiUserActivities.setChangedMode(false);
         
         UIActivitiesLoader activitiesLoader = uiUserActivities.getChild(UIActivitiesLoader.class);
         UIActivitiesContainer activitiesContainer = activitiesLoader.getChild(UIActivitiesContainer.class);
@@ -289,11 +291,6 @@ public class UIUserActivitiesDisplay extends UIForm {
         //activitiesContainer.setNumberOfUpdatedActivities(numberOfUpdates);
         
         int numberOfUpdates = activitiesContainer.getNumberOfUpdatedActivities();
-        
-        //
-        if (numberOfUpdates == 0) {
-          uiUserActivities.resetCookies();
-        }
         
         //
         event.getRequestContext().getJavascriptManager()
@@ -362,9 +359,15 @@ public class UIUserActivitiesDisplay extends UIForm {
    
     int gotNumber = activitiesListAccess.getNumberOfUpdated(updatedFilter);
     
+    
     //
     if (gotNumber == 0 && hasRefresh) {
-      resetCookies();
+      //only in case lastUpdatedNumber > 0 then reset cookies
+      long lastNumber = getLastUpdatedNum(selectedDisplayMode.toString());
+      if (lastNumber > 0) {
+        resetCookies();
+      }
+      
     }
     
     
