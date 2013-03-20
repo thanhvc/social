@@ -33,11 +33,11 @@ import org.exoplatform.social.core.processor.TemplateParamsProcessorTest;
 import org.exoplatform.social.core.service.LinkProviderTest;
 import org.exoplatform.social.core.space.SpaceLifeCycleTest;
 import org.exoplatform.social.core.space.SpaceUtilsRestTest;
-import org.exoplatform.social.core.space.spi.SpaceServiceTest;
+import org.exoplatform.social.core.storage.ActivityStorageNewerTest;
+import org.exoplatform.social.core.storage.ActivityStorageOlderTest;
 import org.exoplatform.social.core.storage.ActivityStorageTest;
 import org.exoplatform.social.core.storage.IdentityStorageTest;
 import org.exoplatform.social.core.storage.RelationshipStorageTest;
-import org.exoplatform.social.core.storage.SpaceStorageTest;
 import org.exoplatform.social.core.storage.cache.CachedActivityStorageTestCase;
 import org.exoplatform.social.core.storage.cache.CachedIdentityStorageTestCase;
 import org.exoplatform.social.core.storage.cache.CachedRelationshipStorageTestCase;
@@ -56,6 +56,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * Nov 8, 2012  
  */
 @SuiteClasses({
+  
   SpaceLastVisitedTest.class,
   WhatsHotTest.class,
   ActivityManagerTest.class,
@@ -66,9 +67,9 @@ import org.junit.runners.Suite.SuiteClasses;
   IdentityStorageImplTestCase.class,
   IdentityStorageTest.class,
   CachedIdentityStorageTestCase.class,
-  SpaceServiceTest.class,
+//  SpaceServiceTest.class,
   CachedSpaceStorageTestCase.class,
-  SpaceStorageTest.class,
+//  SpaceStorageTest.class,
   RelationshipManagerTest.class,
   CachedRelationshipStorageTestCase.class,
   RelationshipStorageTest.class,
@@ -82,7 +83,9 @@ import org.junit.runners.Suite.SuiteClasses;
   TemplateParamsProcessorTest.class,
   ProfileUpdatesPublisherTest.class,
   MentionsProcessorTest.class,
-  LinkProviderTest.class
+  LinkProviderTest.class,
+  ActivityStorageNewerTest.class,
+  ActivityStorageOlderTest.class
   })
 @ConfigTestCase(AbstractCoreTest.class)
 public class InitContainerTestSuite extends BaseExoContainerTestSuite {
