@@ -79,7 +79,7 @@ public class cache extends org.crsh.jcr.command.JCRCommand {
     Collection caches = getCacheService().getAllCacheInstances();
     caches.each {
       ExoCache cache = ((ExoCache)it);
-      print += "${cache.name} : ${cache.cacheSize} ~ maxSize : ${cache.maxSize}\n";
+      print += "${cache.name}(${cache.maxSize}) : ${cache.cacheSize}\n";
     }
     return print;
   }
