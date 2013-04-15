@@ -16,10 +16,14 @@
  */
 package groovy.social
 
+import org.crsh.cmdline.annotations.Argument
 import org.crsh.cmdline.annotations.Command
 import org.crsh.cmdline.annotations.Usage
 import org.exoplatform.container.PortalContainer
 import org.exoplatform.web.application.javascript.JavascriptConfigService
+import org.gatein.common.io.IOTools
+import org.gatein.portal.controller.resource.ResourceId
+import org.gatein.portal.controller.resource.ResourceScope
 import org.gatein.portal.controller.resource.script.Module
 import org.gatein.portal.controller.resource.script.ScriptResource
 import org.gatein.portal.controller.resource.script.Module.Local
@@ -71,6 +75,47 @@ public class js extends org.crsh.jcr.command.JCRCommand {
     return getResources(FORUM_RESOURCE);
   }
   
+  @Usage("Show content of module in JavaScriptManager by uri such as: 'UIActivityUpdates.js' or '/social-resources/javascript/eXo/social/webui/UIActivityUpdates.js'")
+  @Command
+  public Object show(@Argument String uri) throws ScriptException {
+    Locale local = Locale.ENGLISH;
+    Module module = getModule(uri);
+    Reader reader = getJavascriptConfigService().getJavascript(module, local);
+    
+    //
+    StringWriter buffer = new StringWriter();
+    IOTools.copy(reader, buffer, 1);
+    return buffer.toString();
+  }
+  
+  @Usage("Show resource by resourceName such as: 'social-ui-activity-updates'")
+  @Command
+  public Object resource(@Argument String resourceName) throws ScriptException {
+    ResourceId resourceId = new ResourceId(ResourceScope.SHARED, resourceName);
+    ScriptResource scriptResource = getJavascriptConfigService().getResource(resourceId);
+    String print = "";
+    List<Module> modules = scriptResource.getModules();
+
+    //
+    print = "${resourceId.toString()} : {\n";
+    modules.each {
+      if (it instanceof Local) {
+        Local local = (Local)it;
+        print += " - uri : ${local.getURI()} \n ";
+      } else if (it instanceof Remote) {
+      }
+      print += "}\n";
+    }
+
+    return print;
+  }
+  
+  /**
+   * Gets all of resource by Product name
+   * 
+   * @param productName
+   * @return
+   */
   private String getResources(String productName) {
     List<ScriptResource> all = getJavascriptConfigService().getAllResources();
 
@@ -79,13 +124,15 @@ public class js extends org.crsh.jcr.command.JCRCommand {
 
     all.each {
       List<Module> modules = it.getModules();
-      parent = "${it.getId()} : {\n";
+
+      //
+      parent = "${it.getId().toString()} : {\n";
       modules.each {
         if (it instanceof Local) {
           Local local = (Local)it;
           if (productName.equals(local.getContextPath()) && local.getURI().trim().length() > 0) {
             print += parent;
-            print += " - uri : ${local.getURI()} \n "
+            print += " - uri : ${local.getURI()} \n ";
             print += "}\n";
           }
         } else if (it instanceof Remote) {
@@ -96,9 +143,32 @@ public class js extends org.crsh.jcr.command.JCRCommand {
     return print;
   }
   
-  
+  /**
+   * Gets module by uri
+   * @param uri
+   * @return
+   */
+  private Module getModule(String uri) {
+    List<ScriptResource> all = getJavascriptConfigService().getAllResources();
 
-  
+    Module got = null;
+
+    for(ScriptResource resource : all) {
+      List<Module> modules = resource.getModules();
+      for(Module module : modules) {
+        if (module instanceof Local) {
+          Local local = (Local)module;
+          if (local.getURI().indexOf(uri) >= 0) {
+            got = local;
+            break;
+          }
+        }
+      }
+    }
+    
+    return got;
+  }
+    
   private JavascriptConfigService getJavascriptConfigService() {
     PortalContainer container = PortalContainer.getInstance();
     return (JavascriptConfigService) container.getComponentInstanceOfType(JavascriptConfigService.class);
