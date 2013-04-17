@@ -14,11 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package groovy.social
+package crash.commands
 
-import org.crsh.cmdline.annotations.Argument
-import org.crsh.cmdline.annotations.Command
-import org.crsh.cmdline.annotations.Usage
+import org.crsh.cli.Argument
+import org.crsh.cli.Command
+import org.crsh.cli.Usage
+import org.crsh.command.CRaSHCommand
 import org.exoplatform.container.PortalContainer
 import org.exoplatform.web.application.javascript.JavascriptConfigService
 import org.gatein.common.io.IOTools
@@ -36,7 +37,7 @@ import org.gatein.portal.controller.resource.script.Module.Remote
  * Apr 13, 2013  
  */
 @Usage("Javascript management")
-public class js extends org.crsh.jcr.command.JCRCommand {
+public class js extends CRaSHCommand {
   
   private final static String SOCIAL_RESOURCE = "/social-resources";
   private final static String FORUM_RESOURCE = "/forumResources";

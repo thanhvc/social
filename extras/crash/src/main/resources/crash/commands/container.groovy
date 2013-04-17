@@ -1,8 +1,9 @@
-package groovy.social
+package crash.commands
 
-import org.crsh.cmdline.annotations.Argument
-import org.crsh.cmdline.annotations.Command
-import org.crsh.cmdline.annotations.Usage
+import org.crsh.cli.Argument
+import org.crsh.cli.Command
+import org.crsh.cli.Usage
+import org.crsh.command.CRaSHCommand
 import org.exoplatform.commons.utils.PropertyManager
 import org.exoplatform.container.PortalContainer
 import org.exoplatform.container.configuration.ConfigurationManager
@@ -12,8 +13,6 @@ import org.exoplatform.container.xml.ComponentLifecyclePlugin
 import org.exoplatform.container.xml.Configuration
 import org.exoplatform.services.naming.InitialContextInitializer
 import org.gatein.common.io.IOTools
-
-import com.sun.org.apache.xalan.internal.xsltc.runtime.output.StringOutputBuffer;
 /*
  * Copyright (C) 2003-2013 eXo Platform SAS.
  *
@@ -38,7 +37,7 @@ import com.sun.org.apache.xalan.internal.xsltc.runtime.output.StringOutputBuffer
  * Apr 13, 2013  
  */
 @Usage("Exo Container Utilities")
-public class container extends org.crsh.jcr.command.JCRCommand {
+public class container extends CRaSHCommand {
 
   @Usage("Using to show all of configuration files for eXo Container")
   @Command

@@ -14,31 +14,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package groovy.social
+package crash.commands
 
-import org.crsh.jcr.JCR;
-import org.crsh.jcr.command.ContainerOpt;
-import org.crsh.jcr.command.UserNameOpt;
-import org.crsh.jcr.command.PasswordOpt;
-import org.crsh.cmdline.annotations.Man;
-import org.crsh.cmdline.annotations.Usage;
-import org.crsh.cmdline.annotations.Command;
-import org.crsh.cmdline.annotations.Option;
-import org.crsh.cmdline.annotations.Argument;
-import org.crsh.cmdline.annotations.Required;
-import org.crsh.command.InvocationContext;
-
-import org.exoplatform.container.PortalContainer;
-import org.exoplatform.services.cache.CacheService;
-import org.exoplatform.services.cache.ExoCache;
-import java.util.Collection;
+import org.crsh.cli.Argument
+import org.crsh.cli.Command
+import org.crsh.cli.Usage
+import org.exoplatform.container.PortalContainer
+import org.exoplatform.services.cache.CacheService
+import org.exoplatform.services.cache.ExoCache
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
  * @version $Revision$
  */
 @Usage("ExoCache management")
-public class cache extends org.crsh.jcr.command.JCRCommand {
+class cache {
 
   @Usage("Clean the specified cache.")
   @Command
