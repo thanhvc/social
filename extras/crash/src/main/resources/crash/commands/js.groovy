@@ -16,9 +16,6 @@
  */
 package crash.commands
 
-import org.crsh.cli.Argument
-import org.crsh.cli.Command
-import org.crsh.cli.Usage
 import org.crsh.command.CRaSHCommand
 import org.exoplatform.container.PortalContainer
 import org.exoplatform.web.application.javascript.JavascriptConfigService
@@ -29,6 +26,10 @@ import org.gatein.portal.controller.resource.script.Module
 import org.gatein.portal.controller.resource.script.ScriptResource
 import org.gatein.portal.controller.resource.script.Module.Local
 import org.gatein.portal.controller.resource.script.Module.Remote
+import org.crsh.cmdline.annotations.Usage
+import org.crsh.cmdline.annotations.Command
+import org.crsh.cmdline.annotations.Argument
+import org.crsh.cmdline.annotations.Required
 
 /**
  * Created by The eXo Platform SAS
@@ -37,7 +38,7 @@ import org.gatein.portal.controller.resource.script.Module.Remote
  * Apr 13, 2013  
  */
 @Usage("Javascript management")
-public class js extends CRaSHCommand {
+class js extends CRaSHCommand {
   
   private final static String SOCIAL_RESOURCE = "/social-resources";
   private final static String FORUM_RESOURCE = "/forumResources";

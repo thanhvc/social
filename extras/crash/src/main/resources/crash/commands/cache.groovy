@@ -16,19 +16,22 @@
  */
 package crash.commands
 
-import org.crsh.cli.Argument
-import org.crsh.cli.Command
-import org.crsh.cli.Usage
+import org.crsh.command.CRaSHCommand
 import org.exoplatform.container.PortalContainer
 import org.exoplatform.services.cache.CacheService
 import org.exoplatform.services.cache.ExoCache
+
+import org.crsh.cmdline.annotations.Usage
+import org.crsh.cmdline.annotations.Command
+import org.crsh.cmdline.annotations.Argument
+import org.crsh.cmdline.annotations.Required
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
  * @version $Revision$
  */
 @Usage("ExoCache management")
-class cache {
+class cache extends CRaSHCommand {
 
   @Usage("Clean the specified cache.")
   @Command
