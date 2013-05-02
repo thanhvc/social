@@ -58,9 +58,9 @@ class gtmpl extends CRaSHCommand {
   public Object path(@Argument String templatePath) throws ScriptException {
     PropertyManager.setProperty(pathKey, templatePath);
     if (PropertyManager.getProperty(pathKey).length() > 0) {
-      return "Done";
+      return "Added";
     } else {
-      return "Failed";
+      return "Clear";
     }
   }
   
