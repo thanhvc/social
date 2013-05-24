@@ -1002,7 +1002,11 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
     builder.where(whereExpression.toString());
     applyOrder(builder, profileFilter);
 
-    QueryResult<ProfileEntity> results = builder.get().objects(offset, limit);
+
+    org.chromattic.core.query.QueryImpl<ProfileEntity> queryImpl = (org.chromattic.core.query.QueryImpl<ProfileEntity>) builder.get();
+    ((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).setCaseInsensitiveOrder(true);
+    
+    QueryResult<ProfileEntity> results = queryImpl.objects(offset, limit);
     while (results.hasNext()) {
 
       ProfileEntity profileEntity = results.next();
@@ -1050,7 +1054,13 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
 
    //QueryResult<ProfileEntity> results = builder.get().objects(offset, limit);
     
-    QueryResult<ProfileEntity> results = builder.get().objects();
+    org.chromattic.core.query.QueryImpl<ProfileEntity> queryImpl = (org.chromattic.core.query.QueryImpl<ProfileEntity>) builder.get();
+    //from chromattic 1.2.3
+    ((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).setCaseInsensitiveOrder(true);
+    
+    QueryResult<ProfileEntity> results = queryImpl.objects();
+
+    //QueryResult<ProfileEntity> results = builder.get().objects();
     
     //
     IdentityResult identityResult = new IdentityResult(offset, limit, results.size());
@@ -1199,7 +1209,13 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
     builder.where(whereExpression.toString());
     applyOrder(builder, profileFilter);
 
-    QueryResult<ProfileEntity> results = builder.get().objects();
+    org.chromattic.core.query.QueryImpl<ProfileEntity> queryImpl = (org.chromattic.core.query.QueryImpl<ProfileEntity>) builder.get();
+    //from chromattic 1.2.3
+    ((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).setCaseInsensitiveOrder(true);
+    
+    QueryResult<ProfileEntity> results = queryImpl.objects();
+    
+    //QueryResult<ProfileEntity> results = builder.get().objects();
     
     //
     IdentityResult identityResult = new IdentityResult(offset, limit, results.size());
