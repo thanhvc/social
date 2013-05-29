@@ -19,6 +19,8 @@ package org.exoplatform.social.core.storage.impl;
 
 import java.util.Iterator;
 
+import javax.jcr.Session;
+
 import org.chromattic.api.ChromatticSession;
 import org.exoplatform.commons.chromattic.ChromatticManager;
 import org.exoplatform.container.PortalContainer;
@@ -55,6 +57,10 @@ public abstract class AbstractStorage {
 
   protected ChromatticSession getSession() {
     return lifeCycle.getSession();
+  }
+  
+  protected Session getJCRSession() {
+    return lifecycleLookup().getSession().getJCRSession();
   }
 
   private <T> T getRoot(String nodetypeName, Class<T> t) {

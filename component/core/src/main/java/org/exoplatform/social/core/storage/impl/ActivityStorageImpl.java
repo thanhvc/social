@@ -32,6 +32,11 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.query.QueryManager;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 import org.chromattic.api.query.Ordering;
@@ -806,7 +811,9 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     
     ActivityFilter filter = new ActivityFilter(){};
     //
-    return getActivitiesOfIdentities(ActivityBuilderWhere.simple().mentioner(ownerIdentity).owners(identities), filter, offset, limit);
+    //return getActivitiesOfIdentities(ActivityBuilderWhere.simple().mentioner(ownerIdentity).owners(identities), filter, offset, limit);
+    
+    return getActivitiesOfIdentitiesJCR(ActivityBuilderWhere.simple().mentioner(ownerIdentity).owners(identities), filter, offset, limit);
   }
 
   /**
@@ -823,8 +830,9 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     
     ActivityFilter filter = new ActivityFilter(){};
 
-    return getActivitiesOfIdentitiesQuery(ActivityBuilderWhere.simple().mentioner(ownerIdentity).owners(identities), filter).objects().size();
-
+    //return getActivitiesOfIdentitiesQuery(ActivityBuilderWhere.simple().mentioner(ownerIdentity).owners(identities), filter).objects().size();
+    
+    return (int)getActivitiesOfIdentitiesJCRQuery(ActivityBuilderWhere.simple().mentioner(ownerIdentity).owners(identities), filter, -1, -1).getSize();
   }
 
   @Override
@@ -1450,9 +1458,63 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
   /**
    * {@inheritDoc}
    */
+  public List<ExoSocialActivity> getActivitiesOfIdentitiesJCR(ActivityBuilderWhere where, ActivityFilter filter,
+                                                           long offset, long limit) throws ActivityStorageException {
+
+    NodeIterator it = getActivitiesOfIdentitiesJCRQuery(where, filter, offset, limit);
+
+    List<ExoSocialActivity> activities =  new ArrayList<ExoSocialActivity>();
+
+    if (it != null) {
+     
+      while(it.hasNext()) {
+        Node nodeObj = it.nextNode();
+        ActivityEntity entity;
+        try {
+          entity = _findById(ActivityEntity.class, nodeObj.getUUID());
+          activities.add(getStorage().getActivity(entity.getId()));
+        } catch (Exception e) {
+          LOG.warn("getActivitiesOfIdentitiesJCR: Failed to getActivitiesFeed()");
+        }
+        
+      }
+    }
+    
+
+    return activities;
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  private NodeIterator getActivitiesOfIdentitiesJCRQuery(ActivityBuilderWhere whereBuilder,
+                                                               JCRFilterLiteral filter, long offset, long limit) throws ActivityStorageException {
+
+    String query = "SELECT * FROM soc:activity WHERE " + whereBuilder.build(filter) + " ORDER BY soc:lastUpdated DESC, soc:postedTime DESC";
+    NodeIterator it = null;
+    try {
+      QueryManager qm = getJCRSession().getWorkspace().getQueryManager();
+      org.exoplatform.services.jcr.impl.core.query.QueryImpl jcrQuery = (org.exoplatform.services.jcr.impl.core.query.QueryImpl)qm.createQuery(query, javax.jcr.query.Query.SQL);
+      if (offset > 0) jcrQuery.setOffset(offset);
+      if (limit > 0) jcrQuery.setLimit(limit); 
+
+      javax.jcr.query.QueryResult result = jcrQuery.execute();
+      it = result.getNodes();
+    } catch (RepositoryException e) {
+      LOG.warn("getActivitiesOfIdentitiesJCRQuery: Failed to getActivitiesFeed()");
+      return null;
+    }
+    
+    return it;
+   
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
   private Query<ActivityEntity> getActivitiesOfIdentitiesQuery(ActivityBuilderWhere whereBuilder,
                                                                JCRFilterLiteral filter) throws ActivityStorageException {
-
+    
     QueryBuilder<ActivityEntity> builder = getSession().createQueryBuilder(ActivityEntity.class);
 
     builder.where(whereBuilder.build(filter));
@@ -1461,8 +1523,6 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     return builder.get();
   }
   
-  
-
   /**
    * {@inheritDoc}
    */

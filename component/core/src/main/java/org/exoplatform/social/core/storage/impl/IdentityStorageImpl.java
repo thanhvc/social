@@ -1006,6 +1006,7 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
 
     QueryImpl<ProfileEntity> queryImpl = (QueryImpl<ProfileEntity>) builder.get();
     ((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).setCaseInsensitiveOrder(true);
+    //((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).
     
     QueryResult<ProfileEntity> results = queryImpl.objects(offset, limit);
     while (results.hasNext()) {
