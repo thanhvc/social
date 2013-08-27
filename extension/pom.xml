@@ -36,5 +36,6 @@
     <module>jar</module>
     <module>war</module>
     <module>notification</module>
+    <module>custom-notification</module>
   </modules>
 </project>
