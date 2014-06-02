@@ -274,4 +274,16 @@ public interface ExoSocialActivity extends org.apache.shindig.social.opensocial.
    * @param parentId
    */
   void setParentId(String parentId);
+  
+  /**
+   * returns the signature the process in memory of the activity
+   * @return
+   */
+  boolean isLazyCreated();
+  
+  /**
+   * sets the signature the process in memory of the activity
+   * @param isLazyCreated
+   */
+  void setLazyCreated(boolean isLazyCreated);
 }

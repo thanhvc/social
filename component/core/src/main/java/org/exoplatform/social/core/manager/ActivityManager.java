@@ -24,6 +24,7 @@ import org.exoplatform.social.core.BaseActivityProcessorPlugin;
 import org.exoplatform.social.core.activity.ActivityListenerPlugin;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.listeners.Callback;
 import org.exoplatform.social.core.storage.ActivityStorageException;
 
 /**
@@ -54,6 +55,19 @@ public interface ActivityManager {
    */
   void saveActivityNoReturn(Identity streamOwner, ExoSocialActivity activity);
 
+  /**
+   * Saves a newly created activity to a stream. 
+   * The stream owner will be <code>Activity.userId</code> in case that information has not already been set.
+   * The providing the callback to make sure the callback has been invoked when persist the activity to storage
+   *
+   * @param streamOwner The activity stream owner.
+   * @param activity The activity to be saved.
+   * @param callback The callback has been invoked when persist the activity to storage
+   * @return The activity.
+   * @LevelAPI Platform
+   * @since  4.1.x
+   */
+  ExoSocialActivity saveActivity(Identity streamOwner, ExoSocialActivity activity, Callback callback);
 
    /**
    * Saves a newly created activity to the stream. In this case, information of the stream owner has been set in the activity.
@@ -128,6 +142,19 @@ public interface ActivityManager {
    * @LevelAPI Platform
    */
   void saveComment(ExoSocialActivity activity, ExoSocialActivity newComment);
+  
+  /**
+   * Saves a new comment to a specific activity.
+   * The providing the callback to make sure the callback has been invoked when persist the comment to storage
+   *
+   * @param activity The activity.
+   * @param newComment The comment to be saved.
+   * @param callback The callback has been invoked when persist the activity to storage
+   * @return The activity.
+   * @LevelAPI Platform
+   * @since  4.1.x
+   */
+  ExoSocialActivity saveComment(ExoSocialActivity activity, ExoSocialActivity newComment, Callback callback);
 
   /**
    * Gets comments of a specific activity. 

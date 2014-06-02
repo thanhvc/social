@@ -94,6 +94,9 @@ public class ExoSocialActivityImpl extends ActivityImpl implements ExoSocialActi
   //
   private String parentId;
   
+  /** if TRUE, only process in memory*/
+  private boolean isLazyCreated = false;
+  
   /**
    * constructor.
    */
@@ -504,6 +507,16 @@ public class ExoSocialActivityImpl extends ActivityImpl implements ExoSocialActi
   @Override
   public void setParentId(String parentId) {
     this.parentId = parentId;
+  }
+  
+  @Override
+  public boolean isLazyCreated() {
+    return isLazyCreated;
+  }
+
+  @Override
+  public void setLazyCreated(boolean isLazyCreated) {
+    this.isLazyCreated = isLazyCreated;
   }
 
   @Override

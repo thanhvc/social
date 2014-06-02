@@ -37,6 +37,7 @@ import org.exoplatform.social.core.activity.CommentsRealtimeListAccess;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.listeners.Callback;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.ActivityStorageException;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
@@ -483,9 +484,24 @@ public class ActivityManagerImpl implements ActivityManager {
    * @param newActivity the new activity
    * @return the identity stream owner
    */
-  private Identity getStreamOwner(ExoSocialActivity newActivity) {
+  protected Identity getStreamOwner(ExoSocialActivity newActivity) {
     Validate.notNull(newActivity.getUserId(), "activity.getUserId() must not be null!");
     return identityManager.getIdentity(newActivity.getUserId(), false);
+  }
+
+  @Override
+  public ExoSocialActivity saveActivity(Identity streamOwner,
+                                        ExoSocialActivity activity,
+                                        Callback callback) {
+    return saveActivity(streamOwner, activity);
+  }
+
+  @Override
+  public ExoSocialActivity saveComment(ExoSocialActivity activity,
+                                       ExoSocialActivity newComment,
+                                       Callback callback) {
+    saveComment(activity, newComment);
+    return newComment;
   }
 
 }
