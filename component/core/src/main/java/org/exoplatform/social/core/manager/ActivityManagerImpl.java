@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.container.component.BaseComponentPlugin;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.common.RealtimeListAccess;
@@ -50,7 +51,7 @@ import org.exoplatform.social.core.storage.api.ActivityStorage;
  * @since Nov 24, 2010
  * @since 1.2.0-GA
  */
-public class ActivityManagerImpl implements ActivityManager {
+public class ActivityManagerImpl extends BaseComponentPlugin implements ActivityManager {
   /** Logger */
   private static final Log               LOG = ExoLogger.getLogger(ActivityManagerImpl.class);
 

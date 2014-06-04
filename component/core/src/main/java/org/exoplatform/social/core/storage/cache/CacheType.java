@@ -17,13 +17,13 @@
 
 package org.exoplatform.social.core.storage.cache;
 
+import java.io.Serializable;
+
 import org.exoplatform.services.cache.CacheService;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.social.core.storage.cache.loader.CacheLoader;
 import org.exoplatform.social.core.storage.cache.loader.ServiceContext;
 import org.exoplatform.social.core.storage.cache.model.key.CacheKey;
-
-import java.io.Serializable;
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>

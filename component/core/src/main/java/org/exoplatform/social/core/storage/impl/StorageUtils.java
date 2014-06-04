@@ -45,6 +45,7 @@ public class StorageUtils {
   public static final String SOC_ACTIVITY_INFO = "soc:activityInfo";
   public static final String SOC_PREFIX = "soc:";
   private final static long DAY_MILISECONDS = 86400000;//a day = 24h x 60m x 60s x 1000 milisecond.
+  static final String MENTION_CHAR = "@";
   
   //
   private static final Log LOG = ExoLogger.getLogger(StorageUtils.class.getName());
@@ -470,8 +471,23 @@ public class StorageUtils {
   * @param newDate
   * @return TRUE: the day after oldDate
   */
-    public static boolean afterDayOrMore(long oldDate, long newDate) {
-      long diffValue = newDate - oldDate;
-      return diffValue >= DAY_MILISECONDS;
+  public static boolean afterDayOrMore(long oldDate, long newDate) {
+    long diffValue = newDate - oldDate;
+    return diffValue >= DAY_MILISECONDS;
+  }
+
+  /**
+   * Return the mentioner list (identityIds) from activity
+   * 
+   * @param mentionerIds
+   * @return
+   */
+  public static List<String> getIdentityIds(String[] mentionerIds) {
+    List<String> result = new ArrayList<String>();
+    for (String mentionerId : mentionerIds) {
+      result.add(mentionerId.split(MENTION_CHAR)[0]);
     }
+
+    return result;
+  }
 }

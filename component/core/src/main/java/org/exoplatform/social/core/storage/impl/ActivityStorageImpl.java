@@ -101,11 +101,11 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
   private final SortedSet<ActivityProcessor> activityProcessors;
 
   private final RelationshipStorage relationshipStorage;
-  private final IdentityStorage identityStorage;
+  protected final IdentityStorage identityStorage;
   private final SpaceStorage spaceStorage;
   private final ActivityStreamStorage streamStorage;
   //sets value to tell this storage to inject Streams or not
-  private boolean mustInjectStreams = true;
+  protected boolean mustInjectStreams = true;
 
   public ActivityStorageImpl(
       final RelationshipStorage relationshipStorage,
@@ -265,7 +265,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     
   }
   
-  private long getLastUpdatedTime(ActivityEntity activityEntity) {
+  protected long getLastUpdatedTime(ActivityEntity activityEntity) {
     ChromatticSessionImpl chromatticSession = (ChromatticSessionImpl) getSession();
     try {
       Node node = chromatticSession.getNode(activityEntity);
@@ -358,6 +358,33 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     return activity;
   }
   
+  protected void fillStream(IdentityEntity identityEntity, ExoSocialActivity activity) {
+
+    //
+    ActivityStream stream = new ActivityStreamImpl();
+    //
+    stream.setId(identityEntity.getId());
+    stream.setPrettyId(identityEntity.getRemoteId());
+    stream.setType(identityEntity.getProviderId());
+    
+    //Identity identity = identityStorage.findIdentityById(identityEntity.getId());
+    if (identityEntity != null && SpaceIdentityProvider.NAME.equals(identityEntity.getProviderId())) {
+      Space space = spaceStorage.getSpaceByPrettyName(identityEntity.getRemoteId());
+      //work-around for SOC-2366 when rename space's display name.
+      if (space != null) {
+        String groupId = space.getGroupId().split("/")[2];
+        stream.setPermaLink(LinkProvider.getActivityUriForSpace(identityEntity.getRemoteId(), groupId));
+      }
+    } else {
+      stream.setPermaLink(LinkProvider.getActivityUri(identityEntity.getProviderId(), identityEntity.getRemoteId()));
+    }
+    //
+    activity.setActivityStream(stream);
+    activity.setStreamId(stream.getId());
+    activity.setStreamOwner(stream.getPrettyId());
+
+  }
+  
   private ExoSocialActivity fillCommentFromEntity(ActivityEntity activityEntity, ExoSocialActivity comment) {
 
     try {
@@ -412,7 +439,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     return comment;
   }
 
-  private void fillStream(ActivityEntity activityEntity, ExoSocialActivity activity) {
+  protected void fillStream(ActivityEntity activityEntity, ExoSocialActivity activity) {
 
     //
     ActivityStream stream = new ActivityStreamImpl();
@@ -506,7 +533,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     };
   }
 
-  private void processActivity(ExoSocialActivity existingActivity) {
+  public void processActivity(ExoSocialActivity existingActivity) {
     Iterator<ActivityProcessor> it = activityProcessors.iterator();
     while (it.hasNext()) {
       try {
@@ -517,7 +544,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     }
   }
 
-  private ActivityStorage getStorage() {
+  public ActivityStorage getStorage() {
     if (activityStorage == null) {
       activityStorage = (ActivityStorage) PortalContainer.getInstance().getComponentInstanceOfType(ActivityStorage.class);
     }
@@ -1784,7 +1811,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
    * @param isAdded
    * @return list of added IdentityIds who mentioned
    */
-  private String[] processMentions(String[] mentionerIds, String title, List<String> addedOrRemovedIds, boolean isAdded) {
+  protected String[] processMentions(String[] mentionerIds, String title, List<String> addedOrRemovedIds, boolean isAdded) {
     if (title == null || title.length() == 0) {
       return ArrayUtils.EMPTY_STRING_ARRAY;
     }
@@ -1805,7 +1832,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     return mentionerIds;
   }
   
-  private String[] processCommenters(String[] commenters, String commenter, List<String> addedOrRemovedIds, boolean isAdded) {
+  protected String[] processCommenters(String[] commenters, String commenter, List<String> addedOrRemovedIds, boolean isAdded) {
     if (commenter == null || commenter.length() == 0) {
       return ArrayUtils.EMPTY_STRING_ARRAY;
     }

@@ -85,7 +85,7 @@ public class CachedRelationshipStorage implements RelationshipStorage {
   private CachedActivityStorage cachedActivityStorage;
 
   //
-  private static final RelationshipKey RELATIONSHIP_NOT_FOUND = new RelationshipKey(null);
+  private RelationshipKey RELATIONSHIP_NOT_FOUND;
 
   void clearCacheFor(Relationship r) {
 
@@ -207,7 +207,15 @@ public class CachedRelationshipStorage implements RelationshipStorage {
 
     //
     this.exoIdentityCache = cacheService.getIdentityCache();
-
+    
+  }
+  
+  private RelationshipKey getRelationshipNULL() {
+    if (RELATIONSHIP_NOT_FOUND != null) {
+      RELATIONSHIP_NOT_FOUND = new RelationshipKey(null);
+    }
+    
+    return RELATIONSHIP_NOT_FOUND;
   }
 
   /**
@@ -343,8 +351,8 @@ public class CachedRelationshipStorage implements RelationshipStorage {
               return k;
             }
             else {
-              exoRelationshipByIdentityCache.put(key, RELATIONSHIP_NOT_FOUND);
-              return RELATIONSHIP_NOT_FOUND;
+              exoRelationshipByIdentityCache.put(key, getRelationshipNULL());
+              return getRelationshipNULL();
             }
           }
         },
@@ -352,7 +360,7 @@ public class CachedRelationshipStorage implements RelationshipStorage {
     );
 
     //
-    if (gotKey != null && !gotKey.equals(RELATIONSHIP_NOT_FOUND)) {
+    if (gotKey != null && !gotKey.equals(getRelationshipNULL())) {
       return getRelationship(gotKey.getId());
     }
     else {

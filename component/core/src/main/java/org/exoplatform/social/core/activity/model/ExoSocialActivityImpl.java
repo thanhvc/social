@@ -518,6 +518,11 @@ public class ExoSocialActivityImpl extends ActivityImpl implements ExoSocialActi
   public void setLazyCreated(boolean isLazyCreated) {
     this.isLazyCreated = isLazyCreated;
   }
+  
+  @Override
+  public String getHandle() {
+    return "" + getPostedTime();
+  }
 
   @Override
   public String toString() {

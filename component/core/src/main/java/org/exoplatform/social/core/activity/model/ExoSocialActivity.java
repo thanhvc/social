@@ -286,4 +286,11 @@ public interface ExoSocialActivity extends org.apache.shindig.social.opensocial.
    * @param isLazyCreated
    */
   void setLazyCreated(boolean isLazyCreated);
+  
+  /**
+   * Get the handle.
+   * 
+   * @return return the revision of the activity
+   */
+  String getHandle();
 }
