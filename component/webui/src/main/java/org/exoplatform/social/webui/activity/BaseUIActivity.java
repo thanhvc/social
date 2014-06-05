@@ -416,7 +416,8 @@ public class BaseUIActivity extends UIForm {
   protected void saveComment(String remoteUser, String message) throws Exception {
     ExoSocialActivity comment = new ExoSocialActivityImpl(Utils.getViewerIdentity().getId(),
                                                           SpaceActivityPublisher.SPACE_APP_ID, message, null);
-    Utils.getActivityManager().saveComment(getActivity(), comment);
+    //Utils.getActivityManager().saveComment(getActivity(), comment);
+    Utils.getActivityManager().saveComment(getActivity(), comment, null);
     activityCommentsListAccess = Utils.getActivityManager().getCommentsWithListAccess(getActivity());
     comments = activityCommentsListAccess.loadAsList(0, DEFAULT_LIMIT);
     currentLoadIndex = 0;

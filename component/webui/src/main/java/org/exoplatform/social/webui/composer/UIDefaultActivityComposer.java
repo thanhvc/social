@@ -78,7 +78,7 @@ public class UIDefaultActivityComposer extends UIActivityComposer {
                                        postedMessage,
                                        null);
       activity.setType(UIDefaultActivity.ACTIVITY_TYPE);
-      Utils.getActivityManager().saveActivityNoReturn(ownerIdentity, activity);
+      Utils.getActivityManager().saveActivity(ownerIdentity, activity, null);
 
       //
       //uiUserActivitiesDisplay.setPostActivity(true);

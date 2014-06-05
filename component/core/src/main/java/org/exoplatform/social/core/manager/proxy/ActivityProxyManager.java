@@ -19,6 +19,7 @@ package org.exoplatform.social.core.manager.proxy;
 import java.util.List;
 
 import org.exoplatform.commons.utils.CommonsUtils;
+import org.exoplatform.container.component.BaseComponentPlugin;
 import org.exoplatform.social.common.RealtimeListAccess;
 import org.exoplatform.social.core.ActivityProcessor;
 import org.exoplatform.social.core.BaseActivityProcessorPlugin;
@@ -55,8 +56,10 @@ public class ActivityProxyManager implements ActivityManager {
    * Register the other Activity Manager 
    * @param activityManager
    */
-  public void addPlugin(ActivityManager activityManager) {
-    this.activityManagerPlugin = activityManager;
+  public void addPlugin(BaseComponentPlugin baseComponent) {
+    if (baseComponent instanceof ActivityManager) {
+      this.activityManagerPlugin = (ActivityManager) baseComponent;
+    }
   }
 
   @Override

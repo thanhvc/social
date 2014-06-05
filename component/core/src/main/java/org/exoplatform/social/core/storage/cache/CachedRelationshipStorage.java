@@ -17,6 +17,12 @@
 
 package org.exoplatform.social.core.storage.cache;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
@@ -25,6 +31,7 @@ import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.storage.RelationshipStorageException;
+import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.api.RelationshipStorage;
 import org.exoplatform.social.core.storage.cache.loader.ServiceContext;
@@ -44,12 +51,6 @@ import org.exoplatform.social.core.storage.cache.model.key.SuggestionKey;
 import org.exoplatform.social.core.storage.cache.selector.RelationshipCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.SuggestionCacheSelector;
 import org.exoplatform.social.core.storage.impl.RelationshipStorageImpl;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Cache support for RelationshipStorage.
@@ -178,7 +179,7 @@ public class CachedRelationshipStorage implements RelationshipStorage {
   public CachedActivityStorage getCachedActivityStorage() {
     if (cachedActivityStorage == null) {
       cachedActivityStorage = (CachedActivityStorage)
-          PortalContainer.getInstance().getComponentInstanceOfType(CachedActivityStorage.class);
+          PortalContainer.getInstance().getComponentInstanceOfType(ActivityStorage.class);
     }
     return cachedActivityStorage;
   }
