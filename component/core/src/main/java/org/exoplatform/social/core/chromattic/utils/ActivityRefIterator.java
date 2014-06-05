@@ -16,9 +16,24 @@
  */
 package org.exoplatform.social.core.chromattic.utils;
 
-import java.util.*;
 
-import org.exoplatform.social.core.chromattic.entity.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.exoplatform.social.core.chromattic.entity.ActivityEntity;
+import org.exoplatform.social.core.chromattic.entity.ActivityRef;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefDayEntity;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefListEntity;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefMonthEntity;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefYearEntity;
+import org.exoplatform.social.core.chromattic.entity.IndexNumber;
+import org.exoplatform.social.core.chromattic.entity.NamedEntity;
+
 
 public class ActivityRefIterator implements Iterator<ActivityRef> {
 
