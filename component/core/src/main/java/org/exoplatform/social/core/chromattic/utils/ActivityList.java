@@ -74,7 +74,7 @@ public class ActivityList implements Collection<ActivityEntity> {
 
     ActivityDayEntity dayEntity = listEntity.getYear(year).getMonth(month).getDay(day);
     dayEntity.getActivities().add(activityEntity);
-    dayEntity.inc();
+    //dayEntity.inc();
 
     return true;
   }

@@ -65,9 +65,10 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
   private final ActivityStream.Type streamType;
   private final String posterId;
   private final String parentId;
+  private DataStatus status;
+  private final boolean isLazyCreated;
 
-  public ActivityData(final ExoSocialActivity activity) {
-
+  public ActivityData(final ExoSocialActivity activity, DataStatus status) {
     this.id = activity.getId();
     this.title = activity.getTitle();
     this.body = activity.getBody();
@@ -103,9 +104,14 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     else {
       this.templateParams = Collections.emptyMap();
     }
-
+   this.status = status;
+   this.isLazyCreated = activity.isLazyCreated();
   }
-
+  
+  public ActivityData(final ExoSocialActivity activity) {
+    this(activity, DataStatus.PERSISTENTED);
+  }
+  
   public ExoSocialActivity build() {
 
     //
@@ -147,13 +153,37 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     activityStream.setType(streamType);
 
     activity.setActivityStream(activityStream);
+    activity.setLazyCreated(this.isLazyCreated);
 
     return activity;
 
   }
 
+  public DataStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(DataStatus status) {
+    this.status = status;
+  }
+
   public String getUserId() {
     return userId;
   }
+  
+  public String getId() {
+    return id;
+  }
 
+  public String getParentId() {
+    return parentId;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public String getBody() {
+    return body;
+  }
 }

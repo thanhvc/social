@@ -119,7 +119,12 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       Identity owner = streamCtx.getIdentity();
       //It has been invoked by Activity Service with the multi-threading.
       //so that, gets Entity from JCR, prevent Session.logout exception.
-      ActivityEntity activityEntity = _findById(ActivityEntity.class, streamCtx.getActivity().getId());
+      ActivityEntity activityEntity = streamCtx.getActivityEntity();
+      //
+      if (activityEntity == null) {
+        activityEntity = _findById(ActivityEntity.class, streamCtx.getActivity().getId());
+      }
+      
       if (OrganizationIdentityProvider.NAME.equals(owner.getProviderId())) {
         user(owner, activityEntity);
         //mention case
@@ -1167,13 +1172,6 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
         
       HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, true);
       hidableActivity.setHidden(activity.isHidden());
-      for (ActivityRef ref : references) {
-        if (hidableActivity.getHidden() == false) {
-          ref.getDay().inc();
-        } else {
-          ref.getDay().desc();
-        }
-      }
       
     } catch (Exception e) {
       LOG.warn("Failed to update Activity references when change the visibility of activity.", e);

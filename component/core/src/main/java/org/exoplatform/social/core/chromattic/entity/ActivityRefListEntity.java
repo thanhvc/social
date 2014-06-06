@@ -154,7 +154,7 @@ public abstract class ActivityRefListEntity {
       ref.setLastUpdated(lastUpdated);
       ref.setActivityEntity(entity);
       if (!isHidden) {
-        dayEntity.inc();
+        //dayEntity.inc();
       }
       
     }
@@ -244,9 +244,6 @@ public abstract class ActivityRefListEntity {
       // just updated lastUpdated
       if (!oldYear.equalsIgnoreCase(newYear) || !oldMonth.equalsIgnoreCase(newMonth) || !oldDay.equalsIgnoreCase(newDay)) {
         oldDayEntity.getActivityRefs().remove(oldRef.getName());
-        if (!isHidden) {
-          oldDayEntity.desc();
-        }
         getOrCreated(entity, isHidden);
       } else {
         oldRef.setLastUpdated(lastUpdated);
@@ -330,7 +327,7 @@ public abstract class ActivityRefListEntity {
     
     if (ref != null) {
       if (!isHidden) {
-        dayEntity.desc();
+        //dayEntity.desc();
       }
       
       ref = null;

@@ -78,16 +78,6 @@ public abstract class ActivityRefYearEntity implements NamedEntity, IndexNumber 
   @Create
   public abstract ActivityRefMonthEntity newMonth(String month);
 
-  public void inc() {
-    getList().inc();
-    setNumber(getNumber() + 1);
-  }
-
-  public void desc() {
-    getList().desc();
-    setNumber(getNumber() - 1);
-  }
-
   public ActivityRefMonthEntity getMonth(String month) {
 
     ActivityRefMonthEntity monthEntity = getMonths().get(month);

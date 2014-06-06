@@ -75,7 +75,6 @@ public class ActivityRefList implements Collection<ActivityRef> {
     if (ref == null) {
       ref = dayEntity.createRef();
       dayEntity.getActivityRefs().put(activityRef.getActivityEntity().getId(), ref);
-      dayEntity.inc();
     }
     
     //

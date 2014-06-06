@@ -85,12 +85,19 @@ public class ActivityRefIterator implements Iterator<ActivityRef> {
     // Due to change using ActivityId as ActivityRef's name instead of Activity's lastUpdated
     Long co = cache.get(o.getId());
     if (co == null) {
-      ActivityEntity ae = o.getActivityEntity();
-      co = ae == null ? o.getLastUpdated() : ae.getLastUpdated();
-      //In some cases, migrated Activity from 3.5.x, ActivityRef's lastUpdated is NULL
-      //uses instead of ActivityRef's name.
-      if (co == null)
+      ActivityEntity ce = o.getActivityEntity();
+      co = ce != null ? ce.getLastUpdated() : o.getLastUpdated();
+      //
+      if (co == null && ce != null) {
+        co = ce.getPostedTime();
+      }
+      // In some cases, migrated Activity from 3.5.x, ActivityRef's lastUpdated
+      // is NULL
+      // uses instead of ActivityRef's name.
+      if (co == null) {
         co = Long.parseLong(o.getName());
+      }
+        
       cache.put(o.getId(), co);
     }
     return co;
