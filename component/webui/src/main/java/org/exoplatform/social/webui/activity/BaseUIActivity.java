@@ -452,7 +452,7 @@ public class BaseUIActivity extends UIForm {
    * Refresh, regets all likes, comments of this activity.
    */
   protected void refresh() throws ActivityStorageException {
-    activity = Utils.getActivityManager().getActivity(activity.getId());
+    //Don't re-load the activity.
     activity = getI18N(activity);
     if (activity == null) { //not found -> should render nothing
       LOG.info("activity is null, not found. It can be deleted!");

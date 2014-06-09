@@ -22,10 +22,17 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+
 import org.exoplatform.social.core.activity.model.ActivityStream;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 
+/**
+ * Immutable activity data.
+ *
+ * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
+ * @version $Revision$
+ */
 /**
  * Immutable activity data.
  *
@@ -65,10 +72,9 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
   private final ActivityStream.Type streamType;
   private final String posterId;
   private final String parentId;
-  private DataStatus status;
   private final boolean isLazyCreated;
 
-  public ActivityData(final ExoSocialActivity activity, DataStatus status) {
+  public ActivityData(final ExoSocialActivity activity) {
     this.id = activity.getId();
     this.title = activity.getTitle();
     this.body = activity.getBody();
@@ -104,12 +110,7 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     else {
       this.templateParams = Collections.emptyMap();
     }
-   this.status = status;
    this.isLazyCreated = activity.isLazyCreated();
-  }
-  
-  public ActivityData(final ExoSocialActivity activity) {
-    this(activity, DataStatus.PERSISTENTED);
   }
   
   public ExoSocialActivity build() {
@@ -159,14 +160,6 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
 
   }
 
-  public DataStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(DataStatus status) {
-    this.status = status;
-  }
-
   public String getUserId() {
     return userId;
   }
@@ -174,7 +167,7 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
   public String getId() {
     return id;
   }
-
+  
   public String getParentId() {
     return parentId;
   }
