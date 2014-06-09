@@ -381,6 +381,8 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
       if (Space.HIDDEN.equals(space.getVisibility())) {
         activity.isHidden(true);
       }
+      
+      activity.setPosterId(identity.getId());
       activityManager.saveActivityNoReturn(spaceIdentity, activity);
       getStorage().updateProfileActivityId(spaceIdentity, activity.getId(), Profile.AttachedActivityType.SPACE);
       if (SPACE_CREATED_TITLE_ID.equals(titleId))
