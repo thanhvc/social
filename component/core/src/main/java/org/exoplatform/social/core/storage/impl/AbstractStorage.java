@@ -25,9 +25,7 @@ import javax.jcr.query.QueryManager;
 
 import org.chromattic.api.ChromatticSession;
 import org.chromattic.api.Status;
-import org.chromattic.core.api.ChromatticSessionImpl;
 import org.exoplatform.commons.chromattic.ChromatticManager;
-import org.exoplatform.commons.chromattic.Synchronization;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.jcr.impl.core.query.QueryImpl;
 import org.exoplatform.services.log.ExoLogger;

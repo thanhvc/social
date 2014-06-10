@@ -82,6 +82,15 @@ public abstract class ActivityRefListEntity {
   public void desc() {
     setNumber(getNumber() - 1);
   }
+  
+  public int getTotal() {
+    int total = 0;
+    List<ActivityRefYearEntity> years = this.getYearsList();
+    for(ActivityRefYearEntity year : years) {
+      total += year.getTotal();
+    }
+    return total;
+  }
 
   public ActivityRefYearEntity getYear(String year) {
     ActivityRefYearEntity yearEntity = null;

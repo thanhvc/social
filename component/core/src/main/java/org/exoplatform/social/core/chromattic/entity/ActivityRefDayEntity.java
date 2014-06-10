@@ -73,5 +73,14 @@ public abstract class ActivityRefDayEntity implements NamedEntity, IndexNumber {
 
   @ManyToOne
   public abstract ActivityRefMonthEntity getMonth();
+  
+  /**
+   * Calculate the number of activity in the day
+   * 
+   * @return the number of activities
+   */
+  public int getTotal() {
+    return getActivityRefList().size();
+  }
  
 }

@@ -270,8 +270,9 @@ public class SpaceActivityPublisherTest extends  AbstractCoreTest {
    ListAccess<ExoSocialActivity> userActivities = activityManager.getActivitiesWithListAccess(rootIdentity);
    ListAccess<ExoSocialActivity> userFeedActivities = activityManager.getActivityFeedWithListAccess(rootIdentity);
    
-   assertEquals(0, userFeedActivities.getSize());
-   assertEquals(0, userActivities.getSize());
+   //there is an activity creating when add new space
+   assertEquals(0, userFeedActivities.load(0, -1).length);
+   assertEquals(0, userActivities.load(0, -1).length);
    
    //Set space's visibility to PRIVATE
    space.setVisibility(Space.PRIVATE);
@@ -302,15 +303,12 @@ public class SpaceActivityPublisherTest extends  AbstractCoreTest {
    userFeedActivities = activityManager.getActivityFeedWithListAccess(rootIdentity);
    
    //Check space activity stream
-   assertEquals(0, spaceActivities.getSize());
    assertEquals(0, spaceActivities.load(0, 10).length);
    
    //Check user activity stream
-   assertEquals(0, userActivities.getSize());
    assertEquals(0, userActivities.load(0, 10).length);
    
    //Check user feed activity stream
-   assertEquals(0, userFeedActivities.getSize());
    assertEquals(0, userFeedActivities.load(0, 10).length);
 
    //clean up

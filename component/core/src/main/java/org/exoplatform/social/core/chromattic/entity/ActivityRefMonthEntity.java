@@ -110,4 +110,18 @@ public abstract class ActivityRefMonthEntity implements NamedEntity, IndexNumber
     return dayEntity;
 
   }
+  
+  /**
+   * Calculate the number of activity in the month
+   * 
+   * @return the number of activities
+   */
+  public int getTotal() {
+    int total = 0;
+    List<ActivityRefDayEntity> days = this.getDaysList();
+    for(ActivityRefDayEntity day : days) {
+      total += day.getTotal();
+    }
+    return total;
+  }
 }

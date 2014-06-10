@@ -77,6 +77,20 @@ public abstract class ActivityRefYearEntity implements NamedEntity, IndexNumber 
   
   @Create
   public abstract ActivityRefMonthEntity newMonth(String month);
+  
+  /**
+   * Calculate the number of activity in the year
+   * 
+   * @return the number of activities
+   */
+  public int getTotal() {
+    int total = 0;
+    List<ActivityRefMonthEntity> months = this.getMonthsList();
+    for(ActivityRefMonthEntity month : months) {
+      total += month.getTotal();
+    }
+    return total;
+  }
 
   public ActivityRefMonthEntity getMonth(String month) {
 

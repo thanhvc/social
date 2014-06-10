@@ -38,6 +38,7 @@ import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.impl.StorageUtils;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 
 
@@ -282,6 +283,8 @@ public class ActivityStreamStorageTest extends AbstractCoreTest {
     ExoSocialActivity activity2 = new ExoSocialActivityImpl();
     activity2.setTitle(activityTitle + " 2");
     activityStorage.saveActivity(rootIdentity, activity2);
+    
+    StorageUtils.persistJCR(true);
     
     { //checks what's hot
       List<ExoSocialActivity> list = streamStorage.getFeed(rootIdentity, 0, 10);

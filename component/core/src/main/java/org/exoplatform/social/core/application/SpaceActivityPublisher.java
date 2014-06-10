@@ -382,7 +382,7 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
         activity.isHidden(true);
       }
       
-      activity.setPosterId(identity.getId());
+      //activity.setPosterId(identity.getId());
       activityManager.saveActivityNoReturn(spaceIdentity, activity);
       getStorage().updateProfileActivityId(spaceIdentity, activity.getId(), Profile.AttachedActivityType.SPACE);
       if (SPACE_CREATED_TITLE_ID.equals(titleId))
@@ -404,6 +404,7 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
     comment.setTitle(title);
     comment.setTitleId(titleId);
     comment.setUserId(identity.getId());
+    comment.setPosterId(identity.getId());
     comment.setType(type);
     if (spacePrettyName != null) {
       templateParams.put(SPACE_DISPLAY_NAME_PARAM, spacePrettyName);

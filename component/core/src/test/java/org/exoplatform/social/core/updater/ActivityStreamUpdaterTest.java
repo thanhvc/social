@@ -141,10 +141,10 @@ public class ActivityStreamUpdaterTest extends AbstractCoreTest {
     assertNotNull(updaterPlugin);
     updaterPlugin.processUpgrade("1.2.x", "4.0");
     
-    assertEquals(100, streamStorage.getNumberOfFeed(rootIdentity));
-    assertEquals(100, streamStorage.getNumberOfFeed(demoIdentity));
-    assertEquals(100, streamStorage.getNumberOfFeed(maryIdentity));
-    assertEquals(100, streamStorage.getNumberOfFeed(johnIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(rootIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(demoIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(maryIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(johnIdentity));
     
     List<ExoSocialActivity> got = activityStorage.getActivityFeed(rootIdentity, 0, 100);
     assertEquals(100, got.size());

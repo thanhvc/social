@@ -804,7 +804,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       
       if (refList == null || refList.getNumber() < 0) return 0;
       
-      return refList.getNumber().intValue();
+      return refList.getTotal();
     } catch (NodeNotFoundException e) {
       LOG.warn("Failed to getNumberOfActivities()");
     }
@@ -814,7 +814,6 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
   
   
   private QueryResult<ActivityEntity> getActivitiesOfConnections(Identity ownerIdentity) {
-
     List<Identity> connections = new ArrayList<Identity>();
     
     if (ownerIdentity == null ) {
