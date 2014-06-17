@@ -17,6 +17,9 @@
 
 package org.exoplatform.social.core.storage.cache;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
@@ -29,6 +32,7 @@ import org.exoplatform.social.core.space.SpaceFilter;
 import org.exoplatform.social.core.space.SpaceUtils;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.SpaceStorageException;
+import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
 import org.exoplatform.social.core.storage.cache.loader.ServiceContext;
 import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
@@ -45,9 +49,6 @@ import org.exoplatform.social.core.storage.cache.model.key.SpaceType;
 import org.exoplatform.social.core.storage.cache.selector.IdentityCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ScopeCacheSelector;
 import org.exoplatform.social.core.storage.impl.SpaceStorageImpl;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
@@ -119,7 +120,7 @@ public class CachedSpaceStorage implements SpaceStorage {
   public CachedActivityStorage getCachedActivityStorage() {
     if (cachedActivityStorage == null) {
       cachedActivityStorage = (CachedActivityStorage)
-          PortalContainer.getInstance().getComponentInstanceOfType(CachedActivityStorage.class);
+          PortalContainer.getInstance().getComponentInstanceOfType(ActivityStorage.class);
     }
     return cachedActivityStorage;
   }
