@@ -22,6 +22,47 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.exoplatform.org/xml/ns/kernel_1_2.xsd http://www.exoplatform.org/xml/ns/kernel_1_2.xsd"
     xmlns="http://www.exoplatform.org/xml/ns/kernel_1_2.xsd">
+    
+  <!-- caching eviction configuration -->
+  <component>
+    <type>org.exoplatform.social.core.storage.cache.eviction.CacheEvictionManager</type>
+    <component-plugins>
+      <component-plugin>
+        <name>EvictionPlugin</name>
+        <set-method>addEvictionConfig</set-method>
+        <type>org.exoplatform.social.core.storage.cache.eviction.CacheEvictionConfig</type>
+        <init-params>
+          <value-param>
+            <name>cache.name</name>
+            <description>provide the cache name</description>
+            <value>ActivityCache</value>
+          </value-param>
+          <value-param>
+            <name>wakeup.interval.seconds</name>
+            <description>provide the eviction wake up interval seconds </description>
+            <value>5</value>
+          </value-param>
+        </init-params>
+      </component-plugin>
+      <component-plugin>
+        <name>EvictionPlugin</name>
+        <set-method>addEvictionConfig</set-method>
+        <type>org.exoplatform.social.core.storage.cache.eviction.CacheEvictionConfig</type>
+        <init-params>
+          <value-param>
+            <name>cache.name</name>
+            <description>provide the cache name</description>
+            <value>IdentityCache</value>
+          </value-param>
+          <value-param>
+            <name>wakeup.interval.seconds</name>
+            <description>provide the eviction wake up interval seconds </description>
+            <value>5</value>
+          </value-param>
+        </init-params>
+      </component-plugin>
+    </component-plugins>
+  </component>
 
   <external-component-plugins>
     <target-component>org.exoplatform.services.cache.CacheService</target-component>
