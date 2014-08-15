@@ -23,6 +23,8 @@ import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.webui.util.Util;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.space.model.Space;
@@ -50,6 +52,7 @@ import org.exoplatform.webui.core.lifecycle.UIApplicationLifecycle;
   template = "app:/groovy/social/portlet/UIUserActivityStreamPortlet.gtmpl"
 )
 public class UIUserActivityStreamPortlet extends UIPortletApplication {
+  private static final Log LOG = ExoLogger.getLogger(UIUserActivityStreamPortlet.class.getName());
   private String ownerName;
   private String viewerName;
   private UIComposer uiComposer;
@@ -180,13 +183,21 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
    * @return activityTitle
    */
   public String getSingleActivityTitle() {
-    String activityId = Utils.getValueFromRequestParam("id");
-    if (activityId != null) {
-      ExoSocialActivity activity = Utils.getActivityManager().getActivity(activityId);
+    String gotId = Utils.getValueFromRequestParam("id");
+    if (gotId == null) {
+      gotId = Utils.getValueFromRefererURI("id");
+      LOG.debug("got id from referer uri::activityId = " + gotId);
+    }
+    LOG.debug("got id from parameter::activityId = " + gotId);
+    if (gotId != null) {
+      ExoSocialActivity activity = Utils.getActivityManager().getActivity(gotId);
+      LOG.debug("got the activity = " + activity.toString());
       if (activity != null && hasPermissionToViewActivity(activity)) {
         return activity.getTitle();
       }
     }
+    
+    LOG.debug("Activity title is NULL");
     return null;
   }
 
