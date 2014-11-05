@@ -30,6 +30,11 @@ import org.exoplatform.social.core.storage.StorageUtilsTest;
 import org.exoplatform.social.core.storage.query.ExpressionConstructorTestCase;
 import org.exoplatform.social.core.storage.query.WhereExpressionTypesafetyTestCase;
 import org.exoplatform.social.core.storage.query.WhereExpressionValuesTestCase;
+import org.exoplatform.social.core.stream.ActivityConnectionPerfTest;
+import org.exoplatform.social.core.stream.ActivityPerfTest;
+import org.exoplatform.social.core.stream.ActivityTest;
+import org.exoplatform.social.core.stream.CommentTest;
+import org.exoplatform.social.core.stream.ListActivityStreamTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -38,6 +43,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+  ActivityPerfTest.class,
+  ActivityConnectionPerfTest.class,
+  ActivityTest.class,
+  CommentTest.class,
+  ListActivityStreamTest.class,
   GlobalIdTest.class,
   IdentityTest.class,
   ImageUtilsTest.class,

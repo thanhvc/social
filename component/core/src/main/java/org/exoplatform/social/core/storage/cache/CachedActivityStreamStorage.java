@@ -158,6 +158,25 @@ public class CachedActivityStreamStorage implements ActivityStreamStorage {
     this.storage.createActivityRef(owner, activities, type);
     
   }
+  
+  @Override
+  public void createActivityRef(Identity owner,
+                                ExoSocialActivity activity,
+                                ActivityRefType type) {
+    
+    this.storage.createActivityRef(owner, activity, type);
+    
+  }
+  
+  @Override
+  public void removeActivityRef(Identity owner, String activityId, ActivityRefType type) {
+    this.storage.removeActivityRef(owner, activityId, type);
+  }
+  
+  @Override
+  public void updateActivityRef(Identity owner, String activityId, ActivityRefType type) {
+    this.storage.updateActivityRef(owner, activityId, type);
+  }
 
   @Override
   public void createFeedActivityRef(Identity owner, List<ExoSocialActivity> activities) {

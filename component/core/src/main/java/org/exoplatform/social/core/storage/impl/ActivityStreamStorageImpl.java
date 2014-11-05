@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.chromattic.api.ChromatticException;
-import org.chromattic.api.query.Ordering;
 import org.chromattic.api.query.Query;
 import org.chromattic.api.query.QueryBuilder;
 import org.chromattic.api.query.QueryResult;
@@ -36,7 +35,10 @@ import org.exoplatform.social.core.activity.filter.ActivityFilter;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.chromattic.entity.ActivityEntity;
 import org.exoplatform.social.core.chromattic.entity.ActivityRef;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefDayEntity;
 import org.exoplatform.social.core.chromattic.entity.ActivityRefListEntity;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefMonthEntity;
+import org.exoplatform.social.core.chromattic.entity.ActivityRefYearEntity;
 import org.exoplatform.social.core.chromattic.entity.HidableEntity;
 import org.exoplatform.social.core.chromattic.entity.IdentityEntity;
 import org.exoplatform.social.core.chromattic.entity.StreamsEntity;
@@ -54,9 +56,8 @@ import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.RelationshipStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
-import org.exoplatform.social.core.storage.query.JCRProperties;
-import org.exoplatform.social.core.storage.query.WhereExpression;
 import org.exoplatform.social.core.storage.streams.StreamProcessContext;
+import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
 
 public class ActivityStreamStorageImpl extends AbstractStorage implements ActivityStreamStorage {
   
@@ -229,7 +230,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
   private List<Identity> getMemberIdentities(Space space) {
     List<Identity> identities = new ArrayList<Identity>();
     for(String remoteId : space.getMembers()) {
-      //improves performance here just load indentity data without profile
+      //improves performance here just load identity data without profile
       identities.add(identityStorage._findIdentityEntity(OrganizationIdentityProvider.NAME, remoteId, false));
     }
     
@@ -736,14 +737,26 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       _skip(it, offset);
       while (it.hasNext()) {
         ActivityRef current = it.next();
+        ActivityEntity entity = current.getActivityEntity();
         // take care in the case, current.getActivityEntity() = null the same
         // SpaceRef, need to remove it out
-        if (current.getActivityEntity() == null) {
+        if (entity == null) {
           current.getDay().getActivityRefs().remove(current.getName());
           continue;
         }
+        //if it has been removed on memory, don't get it.
+        String activityId = entity.getId();
+        
+        boolean isDeletedInMemory = DataChangeMerger.isDeleted(owner, activityId, type);
+        if(isDeletedInMemory) {
+          continue;
+        }
 
-        ExoSocialActivity a = getStorage().getActivity(current.getActivityEntity().getId());
+        ExoSocialActivity a = getStorage().getActivity(activityId);
+        if (a == null) {
+          continue;
+        }
+        
         if (!got.contains(a)) {
           if (!a.isHidden()) {
             got.add(a);
@@ -786,6 +799,9 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
         }
 
         ExoSocialActivity a = getStorage().getActivity(current.getActivityEntity().getId());
+        //in the case, it has been deleted in memory, the cached returns NULL value.
+        if (a == null) continue;
+        
         if (!got.contains(a)) {
           //only take these user's activities and ower is poster
           if (!a.isHidden() && a.getStreamOwner().equals(owner.getRemoteId())) {
@@ -811,12 +827,24 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
   
   private int getNumberOfActivities(ActivityRefType type, Identity owner) {
     try {
+      int size = 0;
       IdentityEntity identityEntity = identityStorage._findIdentityEntity(owner.getProviderId(), owner.getRemoteId());
       ActivityRefListEntity refList = type.refsOf(identityEntity);
-      
       if (refList == null || refList.getNumber() < 0) return 0;
       
-      return refList.getNumber().intValue();
+      List<ActivityRefYearEntity> years = refList.getYearsList();
+      for(ActivityRefYearEntity year : years) {
+        List<ActivityRefMonthEntity> months = year.getMonthsList();
+        for(ActivityRefMonthEntity month : months) {
+          List<ActivityRefDayEntity> days = month.getDaysList();
+          for(ActivityRefDayEntity day : days) {
+            size += day.getNumber().intValue();
+            
+          }
+        }
+      }
+
+      return size;
     } catch (NodeNotFoundException e) {
       LOG.warn("Failed to getNumberOfActivities()");
     }
@@ -886,28 +914,53 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
     return ref != null && ref.getActivityEntity().getId() == activityEntity.getId();
   }
   
-  private QueryResult<ActivityRef> getActivityRefs(IdentityEntity identityEntity, ActivityRefType type, long offset, long limit) throws NodeNotFoundException {
-
-    QueryBuilder<ActivityRef> builder = getSession().createQueryBuilder(ActivityRef.class);
-
-    WhereExpression whereExpression = new WhereExpression();
-    ActivityRefListEntity refList = type.refsOf(identityEntity);
-    whereExpression.like(JCRProperties.path, refList.getPath() + "/%");
-
-    builder.where(whereExpression.toString());
-    builder.orderBy(ActivityRef.lastUpdated.getName(), Ordering.DESC);
-    builder.orderBy(JCRProperties.name.getName(), Ordering.DESC);
-    return builder.get().objects(offset, limit);
-  }
-  
   private void createOwnerRefs(Identity owner, ActivityEntity activityEntity) throws NodeNotFoundException {
     manageRefList(new UpdateContext(owner, null), activityEntity, ActivityRefType.FEED);
     manageRefList(new UpdateContext(owner, null), activityEntity, ActivityRefType.MY_ACTIVITIES);
   }
+  /**
+   * Removes an activity reference by activityId and owner
+   * @param owner
+   * @param activityId
+   * @param type
+   */
+  public void removeActivityRef(Identity owner, String activityId, ActivityRefType type) {
+    if (activityId == null) return;
+    ActivityEntity activityEntity;
+    try {
+      activityEntity = _findById(ActivityEntity.class, activityId);
+      manageRefList(new UpdateContext(null, owner), activityEntity, type);
+    } catch (NodeNotFoundException e) {
+      LOG.error(e.getMessage());
+    }
+    
+  }
   
-  private void removeOwnerRefs(Identity owner, ActivityEntity activityEntity) throws NodeNotFoundException {
-    manageRefList(new UpdateContext(null, owner), activityEntity, ActivityRefType.FEED);
-    manageRefList(new UpdateContext(null, owner), activityEntity, ActivityRefType.MY_ACTIVITIES);
+  /**
+   * Updates an activity reference by activityId and owner
+   * @param owner
+   * @param activityId
+   * @param type
+   */
+  public void updateActivityRef(Identity owner, String activityId, ActivityRefType type) {
+    try {
+      ActivityEntity activityEntity = _findById(ActivityEntity.class, activityId);
+      HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, false);
+      IdentityEntity identityEntity = identityStorage._findById(IdentityEntity.class, owner.getId());
+      ActivityRefListEntity refList = type.refsOf(identityEntity);
+      refList.remove(activityEntity, hidableActivity.getHidden(), null);
+      ActivityRef newRef = refList.getOrCreated(activityEntity, hidableActivity.getHidden());
+      newRef.setLastUpdated(activityEntity.getLastUpdated());
+      newRef.setActivityEntity(activityEntity);
+    } catch (NodeNotFoundException ex) {
+      LOG.warn("Probably was updated activity reference by another session and the exception: " + ex.getMessage());
+      LOG.debug(ex.getMessage(), ex);
+      //turnOnLock to avoid next exception
+    } catch (ChromatticException ex) {
+      LOG.warn("Probably was updated activity reference by another session and the exception: " + ex.getMessage());
+      LOG.debug(ex.getMessage(), ex);
+    }
+    
   }
   
   private void createConnectionsRefs(List<Identity> identities, ActivityEntity activityEntity) throws NodeNotFoundException {
@@ -1104,11 +1157,25 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       if (oldLastMigration != null && oldLastMigration.longValue() > 0) {
         listRef.setNumber(numberOfStream);
       }
-      
-      StorageUtils.persist();
-      
     } catch (NodeNotFoundException e) {
-      LOG.warn("Failed to create Activity references.");
+      LOG.warn("Failed to create Activity references and the exeception : " + e.getMessage());
+    }
+  }
+  
+  @Override
+  public void createActivityRef(Identity owner,
+                                ExoSocialActivity activity,
+                                ActivityRefType type) {
+    if (activity == null) return;
+    try {
+      IdentityEntity identityEntity = identityStorage._findById(IdentityEntity.class, owner.getId());
+      ActivityRefListEntity listRef = type.create(identityEntity);
+      ActivityEntity activityEntity = getSession().findById(ActivityEntity.class, activity.getId());
+      HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, true);
+      ActivityRef ref = listRef.getOrCreated(activityEntity, hidableActivity.getHidden());
+      ref.setActivityEntity(activityEntity);
+    } catch (NodeNotFoundException e) {
+      LOG.warn("Failed to create Activity references and the exeception : " + e.getMessage());
     }
   }
   

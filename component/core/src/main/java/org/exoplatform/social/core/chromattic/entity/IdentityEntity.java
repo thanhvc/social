@@ -184,4 +184,9 @@ public abstract class IdentityEntity {
   @Create
   public abstract StreamsEntity createStreams();
   
+  @Override
+  public String toString() {
+    return "IdentityEntity[remoteId = " + getRemoteId() + ", providerId = " + getProviderId() + "]";
+  }
+  
 }

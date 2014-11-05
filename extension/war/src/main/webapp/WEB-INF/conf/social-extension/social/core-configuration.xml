@@ -43,11 +43,15 @@
     <init-params>
       <value-param>
         <name>pool-size</name>
-        <value>5</value>
+        <value>${exo.social.activity.pool-size:5}</value>
       </value-param>
       <value-param>
         <name>max-pool-size</name>
-        <value>5</value>
+        <value>${exo.social.activity.max-pool-size:5}</value>
+      </value-param>
+      <value-param>
+        <name>max-queue-size</name>
+        <value>${exo.social.activity.max-queue-size:1000}</value>
       </value-param>
       <value-param>
         <name>async-mode</name>
@@ -55,7 +59,22 @@
       </value-param>
       <value-param>
         <name>thread-priority</name>
-        <value>1</value><!--10: HIGH, 5: NORMAL; 1: LOW-->
+        <value>${exo.social.activity.thread-priority:10}</value><!--10: HIGH, 5: NORMAL; 1: LOW-->
+      </value-param>
+    </init-params>
+  </component>
+  
+  <component>
+    <key>org.exoplatform.social.core.storage.streams.StreamContext</key>
+    <type>org.exoplatform.social.core.storage.streams.StreamContext</type>
+    <init-params>
+      <value-param>
+        <name>exo.social.activity.interval.persist.threshold</name>
+        <value>${exo.social.activity.interval.persist.threshold:240000}</value>
+      </value-param>
+      <value-param>
+        <name>exo.social.activity.limit.persist.threshold</name>
+        <value>${exo.social.activity.limit.persist.threshold:1000}</value>
       </value-param>
     </init-params>
   </component>
@@ -700,14 +719,4 @@
       </init-params>
     </component-plugin>
   </external-component-plugins>
-  
-   <external-component-plugins>
-    <target-component>org.exoplatform.services.listener.ListenerService</target-component>
-    <component-plugin>
-      <name>exo.core.security.ConversationRegistry.register</name>
-      <set-method>addListener</set-method>
-      <type>org.exoplatform.social.core.listeners.AsynchronousLoadActivitiesListener</type>
-      <description>loading activities into caching with asynchronous</description>      
-    </component-plugin>       
-  </external-component-plugins>    
 </configuration>

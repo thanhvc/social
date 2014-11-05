@@ -23,6 +23,7 @@ import org.exoplatform.social.core.storage.cache.model.data.ActivityData;
 import org.exoplatform.social.core.storage.cache.model.data.IdentityData;
 import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
 import org.exoplatform.social.core.storage.cache.model.data.ListActivitiesData;
+import org.exoplatform.social.core.storage.cache.model.data.ListActivityStreamData;
 import org.exoplatform.social.core.storage.cache.model.data.ListIdentitiesData;
 import org.exoplatform.social.core.storage.cache.model.data.ListSpacesData;
 import org.exoplatform.social.core.storage.cache.model.data.ProfileData;
@@ -45,6 +46,7 @@ import org.exoplatform.social.core.storage.cache.model.key.RelationshipKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceFilterKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceRefKey;
+import org.exoplatform.social.core.storage.cache.model.key.StreamKey;
 import org.exoplatform.social.core.storage.cache.model.key.SuggestionKey;
 
 /**
@@ -73,6 +75,7 @@ public class SocialStorageCacheService {
   private final ExoCache<ActivityKey, ActivityData> activityCache;
   private final ExoCache<ActivityCountKey, IntegerData> activitiesCountCache;
   private final ExoCache<ListActivitiesKey, ListActivitiesData> activitiesCache;
+  private final ExoCache<StreamKey, ListActivityStreamData> streamCache;
 
   // SpaceStorage
   private final ExoCache<SpaceKey, SpaceData> spaceCache;
@@ -100,6 +103,8 @@ public class SocialStorageCacheService {
     this.activityCache = CacheType.ACTIVITY.getFromService(cacheService);
     this.activitiesCountCache = CacheType.ACTIVITIES_COUNT.getFromService(cacheService);
     this.activitiesCache = CacheType.ACTIVITIES.getFromService(cacheService);
+    this.streamCache = CacheType.STREAM.getFromService(cacheService);
+    
 
     this.spaceCache = CacheType.SPACE.getFromService(cacheService);
     this.spaceRefCache = CacheType.SPACE_REF.getFromService(cacheService);
@@ -160,6 +165,10 @@ public class SocialStorageCacheService {
 
   public ExoCache<ListActivitiesKey, ListActivitiesData> getActivitiesCache() {
     return activitiesCache;
+  }
+  
+  public ExoCache<StreamKey, ListActivityStreamData> getStreamCache() {
+    return streamCache;
   }
 
   public ExoCache<SpaceKey, SpaceData> getSpaceCache() {

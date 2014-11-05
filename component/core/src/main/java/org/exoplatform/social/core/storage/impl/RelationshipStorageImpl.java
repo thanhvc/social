@@ -46,6 +46,7 @@ import org.exoplatform.social.core.storage.cache.CachedActivityStreamStorage;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 import org.exoplatform.social.core.storage.query.WhereExpression;
+import org.exoplatform.social.core.storage.streams.StreamHelper;
 import org.exoplatform.social.core.storage.streams.StreamInvocationHelper;
 
 import java.util.ArrayList;
@@ -459,7 +460,8 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
             .put(symmetricalRelationship.getName(), symmetricalRelationship);
         
         StreamInvocationHelper.connect(relationship.getSender(), relationship.getReceiver());
-        
+        //
+        StreamHelper.CACHED.clearConnection(sender.getId(), receiver.getId());
         break;
       
       // TODO : IGNORED
@@ -672,7 +674,7 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
       RelationshipEntity symmetricalRelationship = toDeleteRelationship.getReciprocal();
 
       IdentityEntity from = toDeleteRelationship.getFrom();
-      IdentityEntity to = toDeleteRelationship.getFrom();
+      IdentityEntity to = toDeleteRelationship.getTo();
 
       _removeById(RelationshipEntity.class, symmetricalRelationship.getId());
       _removeById(RelationshipEntity.class, relationship.getId());
@@ -682,10 +684,9 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
       
       //getCachedActivityStreamStorage().deleteConnect(relationship.getSender(), relationship.getReceiver());
       StreamInvocationHelper.deleteConnect(relationship.getSender(), relationship.getReceiver());
-      
+      //
+      StreamHelper.CACHED.clearConnection(from.getId(), to.getId());
       getCachedActivityStorage().clearCache();
-      
-      
 
       //
       LOG.debug(String.format(

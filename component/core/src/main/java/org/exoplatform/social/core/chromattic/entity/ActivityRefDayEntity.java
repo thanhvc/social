@@ -75,12 +75,12 @@ public abstract class ActivityRefDayEntity implements NamedEntity, IndexNumber {
   public abstract ActivityRefMonthEntity getMonth();
 
   public void inc() {
-    getMonth().inc();
+    //getMonth().inc();
     setNumber(getNumber() + 1);
   }
 
   public void desc() {
-    getMonth().desc();
+    //getMonth().desc();
     setNumber(getNumber() - 1);
   }
 }

@@ -19,7 +19,6 @@ package org.exoplatform.social.common.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.exoplatform.container.PortalContainer;
 import org.exoplatform.social.common.service.ExecutorServiceManager;
 import org.exoplatform.social.common.service.LifecycleService;
 import org.exoplatform.social.common.service.ProcessContext;
@@ -47,17 +46,15 @@ public class SocialServiceContextImpl implements SocialServiceContext {
   
   private SocialServiceContextImpl() {
     this.traceFactory = TraceFactory.defaultFactory;
-    Object obj = PortalContainer.getInstance().getComponentInstanceOfType(ThreadPoolConfig.class);
-    if (obj != null) {
-      ThreadPoolConfig config = (ThreadPoolConfig)obj;
-      boolean async = config.isAsyncMode();
-      this.isAsyn = async ? ProcessType.ASYNC : ProcessType.SYNC;
-      
-      serviceExecutor = new SocialServiceExecutorImpl(executorServiceManager.newThreadPool("Social", config));
-    } else {
-      serviceExecutor = new SocialServiceExecutorImpl(executorServiceManager.newDefaultThreadPool("Social"));
-    }
-    
+    serviceExecutor = new SocialServiceExecutorImpl(executorServiceManager.newDefaultThreadPool("Social"));
+  }
+  
+  private SocialServiceContextImpl(ThreadPoolConfig config) {
+    this.traceFactory = TraceFactory.defaultFactory;
+    boolean async = config.isAsyncMode();
+    this.isAsyn = async ? ProcessType.ASYNC : ProcessType.SYNC;
+    serviceExecutor = new SocialServiceExecutorImpl(executorServiceManager.newThreadPool("Social",
+                                                                                         config));
   }
   
   public static SocialServiceContext getInstance() {

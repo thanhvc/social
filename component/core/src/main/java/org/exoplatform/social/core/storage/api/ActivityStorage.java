@@ -169,7 +169,9 @@ public interface ActivityStorage {
    * @param limit
    * @return the activities related to the list of connections
    * @since 1.2.0-GA
+   * @Deprecated : it has been deprecated by activity manager
    */
+  @Deprecated
   public List<ExoSocialActivity> getActivitiesOfIdentities(
       List<Identity> connectionList, long offset, long limit) throws ActivityStorageException;
 

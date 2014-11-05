@@ -43,6 +43,8 @@ public class StreamProcessContext extends ProcessorContextImpl {
   public static String UPGRADE_STREAM_PROCESS = "UPGRADE_STREAM_ACTIVITY";
   public static String LAZY_UPGRADE_STREAM_PROCESS = "LAZY_UPGRADE_STREAM_ACTIVITY";
   public static String LOAD_ACTIVITIES_STREAM_PROCESS = "LOAD_ACTIVITIES_STREAM_ACTIVITY";
+  public static String PERSIST_ACTIVITIES_STREAM_PROCESS = "PERSIST_ACTIVITIES_STREAM_PROCESS";
+  
   
   public final static String OWNER = "OWNER";
   public final static String ACTIVITY = "ACTIVITY";

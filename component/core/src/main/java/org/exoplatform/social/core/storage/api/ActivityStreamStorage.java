@@ -355,6 +355,36 @@ public interface ActivityStreamStorage {
   void createActivityRef(Identity owner, List<ExoSocialActivity> activities, ActivityRefType type);
   
   /**
+   * Creates the ActivityRef by the given ActivityRefType
+   * 
+   * @param owner
+   * @param activity
+   * @param type
+   * @since 4.1.0
+   */
+  void createActivityRef(Identity owner, ExoSocialActivity activity, ActivityRefType type);
+  
+  /**
+   * Removes the ActivityRef by the given ActivityRefType
+   * 
+   * @param owner the 
+   * @param activityId
+   * @param type
+   * @since 4.1.0
+   */
+  void removeActivityRef(Identity owner, String activityId, ActivityRefType type);
+  
+  /**
+   * Updates the ActivityRef by the given ActivityRefType
+   * 
+   * @param owner the 
+   * @param activityId
+   * @param type
+   * @since 4.1.0
+   */
+  void updateActivityRef(Identity owner, String activityId, ActivityRefType type);
+  
+  /**
    * Creates the ActivityRef on the Feed stream by the given ActivityRefType
    * 
    * @param owner
