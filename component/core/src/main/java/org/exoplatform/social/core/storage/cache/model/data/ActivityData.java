@@ -35,6 +35,7 @@ import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 public class ActivityData implements CacheData<ExoSocialActivity> {
 
   public final static ActivityData NULL = new ActivityData(new ExoSocialActivityImpl());
+  public final static ActivityData REMOVED = new ActivityData(new ExoSocialActivityImpl(), true);
   
   private final String id;
   private final String title;
@@ -65,6 +66,8 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
   private final ActivityStream.Type streamType;
   private final String posterId;
   private final String parentId;
+  
+  private boolean isDeleted = false;
 
   public ActivityData(final ExoSocialActivity activity) {
 
@@ -105,11 +108,53 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     }
 
   }
+  
+  public ActivityData(final ExoSocialActivity activity, boolean isDeleted) {
+
+    this.id = activity.getId();
+    this.title = activity.getTitle();
+    this.body = activity.getBody();
+    this.likes = activity.getLikeIdentityIds();
+    this.isComment = activity.isComment();
+    this.isHidden = activity.isHidden();
+    this.isLocked = activity.isLocked();
+    this.postedTime = activity.getPostedTime();
+    this.lastUpdated = activity.getUpdated().getTime();
+    this.replyIds = activity.getReplyToId();
+    this.userId = activity.getUserId();
+    this.appId = activity.getAppId();
+    this.titleId = activity.getTitleId();
+    this.bodyId = activity.getBodyId();
+    this.type = activity.getType();
+    this.externalId = activity.getExternalId();
+    this.url = activity.getUrl();
+    this.streamId = activity.getStreamId();
+    this.streamOwner = activity.getStreamOwner();
+    this.streamFaviconUrl = activity.getStreamFaviconUrl();
+    this.streamSourceUrl = activity.getStreamSourceUrl();
+    this.streamTitle = activity.getStreamTitle();
+    this.streamUrl = activity.getStreamUrl();
+    this.mentioners = activity.getMentionedIds();
+    this.commenters = activity.getCommentedIds();
+    this.streamType = activity.getActivityStream().getType();
+    this.posterId = activity.getPosterId();
+    this.parentId = activity.getParentId();
+
+    if (activity.getTemplateParams() != null) {
+      this.templateParams = Collections.unmodifiableMap(activity.getTemplateParams());
+    }
+    else {
+      this.templateParams = Collections.emptyMap();
+    }
+    
+    this.isDeleted = isDeleted;
+
+  }
 
   public ExoSocialActivity build() {
 
     //
-    if (this == NULL) {
+    if (this == NULL || this.isDeleted) {
       return null;
     }
     
@@ -158,5 +203,9 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
 
   public String getStreamOwner() {
     return streamOwner;
+  }
+  
+  public boolean isDeleted() {
+    return isDeleted;
   }
 }

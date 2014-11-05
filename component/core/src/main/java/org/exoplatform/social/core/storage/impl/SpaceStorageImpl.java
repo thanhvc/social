@@ -49,6 +49,7 @@ import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 import org.exoplatform.social.core.storage.query.QueryFunction;
 import org.exoplatform.social.core.storage.query.WhereExpression;
+import org.exoplatform.social.core.storage.streams.StreamHelper;
 import org.exoplatform.social.core.storage.streams.StreamInvocationHelper;
 
 import java.util.ArrayList;
@@ -436,16 +437,16 @@ public class SpaceStorageImpl extends AbstractStorage implements SpaceStorage {
     if (context.getAdded() != null) {
       for (String userName : context.getAdded()) {
         Identity identity = identityStorage.findIdentity(OrganizationIdentityProvider.NAME, userName);
-        //streamStorage.addSpaceMember(identity, spaceIdentity);
         StreamInvocationHelper.addSpaceMember(identity, spaceIdentity);
+        StreamHelper.CACHED.clearSpace(identity.getId());
       }
     }
 
     if (context.getRemoved() != null) {
       for (String userName : context.getRemoved()) {
         Identity identity = identityStorage.findIdentity(OrganizationIdentityProvider.NAME, userName);
-        //streamStorage.removeSpaceMember(identity, spaceIdentity);
         StreamInvocationHelper.removeSpaceMember(identity, spaceIdentity);
+        StreamHelper.CACHED.clearSpace(identity.getId());
       }
     }
   }

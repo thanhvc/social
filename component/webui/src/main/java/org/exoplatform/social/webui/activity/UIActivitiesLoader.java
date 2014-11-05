@@ -53,6 +53,7 @@ import org.exoplatform.webui.event.EventListener;
 public class UIActivitiesLoader extends UIContainer {
   private static final Log LOG = ExoLogger.getLogger(UIActivitiesLoader.class);
 
+  private int totalNumber = -1;
   private int currentLoadIndex;
   private boolean hasMore;
   private UIActivitiesLoader lastActivitiesLoader;
@@ -150,6 +151,22 @@ public class UIActivitiesLoader extends UIContainer {
   public String getSelectedDisplayMode() {
     return selectedDisplayMode;
   }
+  
+  /**
+   * Returns the number of activities what has in the given stream
+   * 
+   * @return -1 if N/A, else the number >= 0
+   */
+  private int totalNumberOfStream() {
+    if (activityListAccess != null && totalNumber == -1) {
+      try {
+        this.totalNumber = activityListAccess.getSize();
+      } catch (Exception e) {
+        this.totalNumber = -1;
+      }
+    }
+    return this.totalNumber;
+  }
 
   protected boolean isUIUserActivityDisplay() {
     return getParent() instanceof UIUserActivitiesDisplay;
@@ -160,6 +177,8 @@ public class UIActivitiesLoader extends UIContainer {
       hasMore = false;
       currentLoadIndex = 0;
       isExtendLoader = false;
+      this.totalNumber = -1;
+      
       
       String activityId = getSingleActivityId();
       if (activityId != null && activityId.length() > 0) {
@@ -227,11 +246,9 @@ public class UIActivitiesLoader extends UIContainer {
 
   private List<ExoSocialActivity> loadActivities(int index, int length) throws Exception {
     if (activityListAccess != null) {
-      int newLength = length + 1;
-      ExoSocialActivity[] activities = activityListAccess.load(index, newLength);
+      ExoSocialActivity[] activities = activityListAccess.load(index, length);
       if (activities != null) {
-        int size = activities.length;
-        boolean hasMore = size > length;
+        boolean hasMore = totalNumberOfStream() > (index + length);
         setHasMore(hasMore);
         
         return hasMore ? new ArrayList<ExoSocialActivity>(Arrays.asList(activities)).subList(0, length) : new ArrayList<ExoSocialActivity>(Arrays.asList(activities)) ;

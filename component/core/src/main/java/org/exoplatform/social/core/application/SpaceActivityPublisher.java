@@ -305,9 +305,6 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
     if (spaceActivityId != null) {
       ExoSocialActivity activity = (ExoSocialActivityImpl) activityManager.getActivity(spaceActivityId);
       if (activity != null) {
-        if (Space.HIDDEN.equals(space.getVisibility())) {
-          activity.isHidden(true);
-        }
         if (Space.PRIVATE.equals(space.getVisibility())) {
           activity.isHidden(false);
         }
@@ -378,9 +375,6 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setType(SPACE_PROFILE_ACTIVITY);
       activity.setTitle(getActivityTitleBySpace(space.getPrettyName())); 
-      if (Space.HIDDEN.equals(space.getVisibility())) {
-        activity.isHidden(true);
-      }
       
       Map<String, String> tmplParams = new LinkedHashMap<String, String>();
       tmplParams.put(Space.CREATOR, event.getTarget());

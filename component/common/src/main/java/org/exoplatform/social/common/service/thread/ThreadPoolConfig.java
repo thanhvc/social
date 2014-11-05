@@ -28,6 +28,7 @@ public class ThreadPoolConfig implements Serializable {
   
   private final String POOL_SIZE = "pool-size";
   private final String MAX_POOL_SIZE = "max-pool-size";
+  private final String MAX_QUEUE_SIZE = "max-queue-size";
   private final String ASYNC_MODE = "async-mode";
   private final String THREAD_PRIORITY = "thread-priority";
   
@@ -47,12 +48,13 @@ public class ThreadPoolConfig implements Serializable {
     //and threads have been released and hold resource shorter
     this.setKeepAliveTime(10L);
     this.setTimeUnit(TimeUnit.SECONDS);
-    //reduce max queue size number to avoid allowing more resources.
-    this.setMaxQueueSize(100);
+    
     
     //
     ValueParam poolSize = params.getValueParam(POOL_SIZE);
     ValueParam maxPoolSize = params.getValueParam(MAX_POOL_SIZE);
+    //reduce max queue size number to avoid allowing more resources.
+    ValueParam maxQueueSize = params.getValueParam(MAX_QUEUE_SIZE);
     ValueParam asyncMode = params.getValueParam(ASYNC_MODE);
     ValueParam threadPriority = params.getValueParam(THREAD_PRIORITY);
     
@@ -70,6 +72,14 @@ public class ThreadPoolConfig implements Serializable {
     }
     catch (Exception e) {
       this.maxPoolSize = 5;
+    }
+    
+    //
+    try {
+      this.maxQueueSize = Integer.valueOf(maxQueueSize.getValue());
+    }
+    catch (Exception e) {
+      this.maxPoolSize = 1000;
     }
     
     //
