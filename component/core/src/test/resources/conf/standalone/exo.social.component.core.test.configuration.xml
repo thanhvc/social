@@ -129,7 +129,7 @@
       </value-param>
       <value-param>
         <name>exo.social.activity.limit.persist.threshold</name>
-        <value>1</value>
+        <value>2</value>
       </value-param>
     </init-params>
   </component>

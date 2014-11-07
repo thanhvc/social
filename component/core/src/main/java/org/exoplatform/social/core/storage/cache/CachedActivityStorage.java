@@ -147,11 +147,14 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
   private void updateCommentCountCaching(String activityId, boolean isIncrease) {
     ActivityCountKey key = new ActivityCountKey(activityId, ActivityType.COMMENTS);
     IntegerData data = exoActivitiesCountCache.get(key);
-    if (isIncrease) {
-      data.increase();
-    } else {
-      data.decrease();
+    if (data != null) {
+      if (isIncrease) {
+        data.increase();
+      } else {
+        data.decrease();
+      }
     }
+    
     
   }
   
@@ -774,7 +777,8 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
    */
   public List<ExoSocialActivity> getActivitiesOfIdentity(final Identity ownerIdentity, final long offset, final long limit)
                                                                                        throws ActivityStorageException {
-    return storage.getActivitiesOfIdentity(ownerIdentity, offset, limit);
+    
+    return getUserActivities(ownerIdentity, offset, limit);
   }
 
   /**
@@ -1994,6 +1998,14 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
                 
       }
     }
+  }
+  
+  /**
+   * Gets the scheduler
+   * @return
+   */
+  public PersisterScheduler getScheduler() {
+    return this.persisterScheduler;
   }
   
 }

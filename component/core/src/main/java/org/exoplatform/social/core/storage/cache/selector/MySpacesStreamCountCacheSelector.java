@@ -34,7 +34,7 @@ public class MySpacesStreamCountCacheSelector extends ScopeCacheSelector<Activit
 
   public MySpacesStreamCountCacheSelector(final String streamOwnerId) {
     if (streamOwnerId == null) {
-      throw new NullPointerException();
+      throw new NullPointerException("streamOwnerId is not null.");
     }
     
     this.streamOwnerId = streamOwnerId;
@@ -46,7 +46,7 @@ public class MySpacesStreamCountCacheSelector extends ScopeCacheSelector<Activit
       return false;
     }
 
-    if (key.getKey().getId().equals(streamOwnerId)
+    if (key.getKey() != null && key.getKey().getId().equals(streamOwnerId)
         && (ActivityType.SPACES.equals(key.getActivityType()) || ActivityType.FEED.equals(key.getActivityType()))) {
       return true;
     }

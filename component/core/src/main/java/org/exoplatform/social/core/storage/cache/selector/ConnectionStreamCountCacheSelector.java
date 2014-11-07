@@ -34,7 +34,7 @@ public class ConnectionStreamCountCacheSelector extends ScopeCacheSelector<Activ
 
   public ConnectionStreamCountCacheSelector(final String streamOwnerId) {
     if (streamOwnerId == null) {
-      throw new NullPointerException();
+      throw new NullPointerException("streamOwnerId is not null.");
     }
     
     this.streamOwnerId = streamOwnerId;
@@ -46,7 +46,7 @@ public class ConnectionStreamCountCacheSelector extends ScopeCacheSelector<Activ
       return false;
     }
 
-    if (key.getKey().getId().equals(streamOwnerId)
+    if (key.getKey() != null && key.getKey().getId().equals(streamOwnerId)
         && (ActivityType.VIEWER.equals(key.getActivityType())
             || ActivityType.CONNECTION.equals(key.getActivityType()) 
             || ActivityType.FEED.equals(key.getActivityType()))) {

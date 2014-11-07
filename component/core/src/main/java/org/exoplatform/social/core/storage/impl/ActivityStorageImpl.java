@@ -800,9 +800,8 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
       //Resolved SOC-3915 empty stream when post comment but lost it.
       //Resolved WhatsHotTest is failed.
       //persist and refresh JCR node to prevent NodeNotFoundException
-      StorageUtils.persist(true);
-      //
       if (mustInjectStreams) {
+        StorageUtils.persist(true);
         Identity identity = identityStorage.findIdentityById(comment.getUserId());
         StreamInvocationHelper.updateCommenter(identity, activityEntity, commenters.toArray(new String[0]), oldUpdated);
         //make sure there is no duplicated identity in commenters and mentioners list 
