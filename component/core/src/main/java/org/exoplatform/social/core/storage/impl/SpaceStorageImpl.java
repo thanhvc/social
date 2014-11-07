@@ -49,6 +49,7 @@ import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 import org.exoplatform.social.core.storage.query.QueryFunction;
 import org.exoplatform.social.core.storage.query.WhereExpression;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.storage.streams.StreamHelper;
 import org.exoplatform.social.core.storage.streams.StreamInvocationHelper;
 

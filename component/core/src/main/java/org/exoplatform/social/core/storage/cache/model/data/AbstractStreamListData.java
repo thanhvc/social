@@ -121,17 +121,15 @@ public abstract class AbstractStreamListData<K, V> implements Serializable {
    * @param position
    */
   public void move(int index, V value, String ownerId) {
-    if (this.list.indexOf(value) > 0) {
-      beforeMove();
-      boolean isRemoved = this.list.remove(value);
-      this.list.add(index, value);
-      if (isRemoved) {
-        addChange(StreamChange.Kind.MOVE, value, ownerId);
-      } else {
-        addChange(StreamChange.Kind.ADD, value, ownerId);
-      }
-      afterMove();
+    beforeMove();
+    boolean isRemoved = this.list.remove(value);
+    this.list.add(index, value);
+    if (isRemoved) {
+      addChange(StreamChange.Kind.MOVE, value, ownerId);
+    } else {
+      addChange(StreamChange.Kind.ADD, value, ownerId);
     }
+    afterMove();
   }
   
   /**

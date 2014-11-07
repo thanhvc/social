@@ -24,11 +24,11 @@ import org.exoplatform.social.core.storage.streams.listener.DataChangeListener;
  *          exo@exoplatform.com
  * Oct 30, 2014  
  */
-public abstract class DataChange<M> {
+public class DataChange<M> {
   
   final M target;
   
-  private DataChange(M target) throws IllegalArgumentException {
+  public DataChange(M target) throws IllegalArgumentException {
     if (target == null) {
       throw new IllegalArgumentException("The target must not be null.");
     }
@@ -69,7 +69,7 @@ public abstract class DataChange<M> {
    * 
    * @param listener the listener handling
    */
-  public abstract void dispatch(DataChangeListener<M> listener);
+  public void dispatch(DataChangeListener<M> listener) {}
   
   public static final class Add<M> extends DataChange<M> {
     

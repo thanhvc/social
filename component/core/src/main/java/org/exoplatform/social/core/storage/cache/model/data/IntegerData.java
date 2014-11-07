@@ -25,8 +25,22 @@ package org.exoplatform.social.core.storage.cache.model.data;
  */
 public class IntegerData extends SimpleCacheData<Integer> {
 
+  private Integer count;
   public IntegerData(final Integer integer) {
     super(integer);
+    this.count = integer;
   }
-
+  
+  public void increase() {
+    count +=1;
+  }
+  
+  public void decrease() {
+    count -=1;
+  }
+  
+  @Override
+  public Integer build() {
+    return this.count;
+  }
 }

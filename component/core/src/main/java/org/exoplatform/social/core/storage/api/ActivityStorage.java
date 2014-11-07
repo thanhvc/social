@@ -70,7 +70,9 @@ public interface ActivityStorage {
    *
    * @param owner the identity
    * @return the activities
+   * @deprecated Due to the performance reason then it will be removed PLF 4.2.0
    */
+  @Deprecated
   public List<ExoSocialActivity> getUserActivities(Identity owner) throws ActivityStorageException;
 
   /**

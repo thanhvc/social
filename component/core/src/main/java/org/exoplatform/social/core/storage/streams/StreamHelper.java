@@ -29,7 +29,6 @@ import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.api.RelationshipStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
-import org.exoplatform.social.core.storage.cache.SocialStorageCacheService;
 import org.exoplatform.social.core.storage.cache.model.data.ListActivityStreamData;
 import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
 import org.exoplatform.social.core.storage.cache.model.key.StreamKey;
@@ -67,14 +66,7 @@ public class StreamHelper {
     return CommonsUtils.getService(SpaceStorage.class);
   }
   
-  /**
-   * 
-   * @return
-   */
-  private static ExoCache<StreamKey, ListActivityStreamData> getStreamCache() {
-    SocialStorageCacheService cacheService = CommonsUtils.getService(SocialStorageCacheService.class);
-    return cacheService.getStreamCache();
-  }
+ 
   
   private static boolean isSpaceActivity(String type) {
     return SpaceIdentityProvider.NAME.toString().equals(type);
@@ -220,7 +212,7 @@ public class StreamHelper {
      */
     private static void putToStream(String posterId, ExoSocialActivity activity, ActivityType type) {
       StreamKey newKey = StreamKey.init(posterId).key(type);
-      ExoCache<StreamKey, ListActivityStreamData> streamCache = getStreamCache();
+      ExoCache<StreamKey, ListActivityStreamData> streamCache = StreamContext.getStreamCache();
       
       ListActivityStreamData data = streamCache.get(newKey);
       if (data == null) {
@@ -230,12 +222,13 @@ public class StreamHelper {
       
       data.putAtTop(activity.getId(), posterId);
     }
+    
+    
   }
   
   public static class MOVE {
     
     public static void addComment(String commenterId, ExoSocialActivity activity) {
-      String posterId = activity.getPosterId();
       String streamOwnerId = activity.getActivityStream().getId();
       
      boolean isSpaceOwner = isSpaceActivity(activity.getActivityStream().getType().toString());
@@ -247,7 +240,34 @@ public class StreamHelper {
         Identity streamOwner = getIdentityStorage().findIdentityById(streamOwnerId);
         if (getRelationshipStorage().getRelationship(commenter, streamOwner) == null) {
           movePosterStream(commenterId, activity);
+        } else {
           movePosterStream(commenterId, activity);
+          moveViewer(commenterId, activity);
+          if (!commenterId.equals(streamOwnerId)) {
+            moveViewer(streamOwnerId, activity);
+          }
+          moveConnection(commenterId, activity);
+        }
+      }
+    }
+    /**
+     * Handles to like the activity
+     * @param likerId
+     * @param activity
+     */
+    public static void addLike(String likerId, ExoSocialActivity activity) {
+      String posterId = activity.getPosterId();
+      String streamOwnerId = activity.getActivityStream().getId();
+      
+     boolean isSpaceOwner = isSpaceActivity(activity.getActivityStream().getType().toString());
+     
+      if (isSpaceOwner) {
+        moveSpaceMembersAndStreamOwner(streamOwnerId, activity);
+      } else {
+        Identity liker = getIdentityStorage().findIdentityById(likerId);
+        Identity streamOwner = getIdentityStorage().findIdentityById(streamOwnerId);
+        if (getRelationshipStorage().getRelationship(liker, streamOwner) == null) {
+          movePosterStream(likerId, activity);
         } else {
           movePosterStream(posterId, activity);
           moveViewer(posterId, activity);
@@ -258,7 +278,7 @@ public class StreamHelper {
         }
       }
       
-      if (!posterId.equals(commenterId)) {
+      if (!posterId.equals(likerId)) {
         moveTopStream(posterId, activity, ActivityType.USER);
       }
     }
@@ -367,7 +387,7 @@ public class StreamHelper {
     private static void moveTopStream(String identityId, ExoSocialActivity activity, ActivityType type) {
       StreamKey newKey = StreamKey.init(identityId).key(type);
       
-      ExoCache<StreamKey, ListActivityStreamData> streamCache = getStreamCache();
+      ExoCache<StreamKey, ListActivityStreamData> streamCache = StreamContext.getStreamCache();
       
       ListActivityStreamData data = streamCache.get(newKey);
       if (data == null) {
@@ -433,11 +453,29 @@ public class StreamHelper {
      */
     public static void removeComment(String commenterId, ExoSocialActivity activity) {
       removeFromStream(commenterId, activity, ActivityType.USER);
+      removeFromStream(commenterId, activity, ActivityType.VIEWER);
       Identity commenter = getIdentityStorage().findIdentityById(commenterId);
       Identity streamOwner = getIdentityStorage().findIdentityById(activity.getActivityStream().getId());
       //case commenter not connected streamOwner, Feed removes the activity
       if (getRelationshipStorage().getRelationship(commenter, streamOwner) == null) {
         removeFromStream(commenterId, activity, ActivityType.FEED);
+      }
+    }
+    
+    /**
+     * Removes the activity like
+     * 
+     * @param likerId
+     * @param activity
+     */
+    public static void removeLike(String likerId, ExoSocialActivity activity) {
+      removeFromStream(likerId, activity, ActivityType.USER);
+      removeFromStream(likerId, activity, ActivityType.VIEWER);
+      Identity commenter = getIdentityStorage().findIdentityById(likerId);
+      Identity streamOwner = getIdentityStorage().findIdentityById(activity.getActivityStream().getId());
+      //case commenter not connected streamOwner, Feed removes the activity
+      if (getRelationshipStorage().getRelationship(commenter, streamOwner) == null) {
+        removeFromStream(likerId, activity, ActivityType.FEED);
       }
     }
     
@@ -514,13 +552,17 @@ public class StreamHelper {
     private static void removeFromStream(String identityId, ExoSocialActivity activity, ActivityType type) {
       StreamKey newKey = StreamKey.init(identityId).key(type);
       
-      ExoCache<StreamKey, ListActivityStreamData> streamCache = getStreamCache();
+      ExoCache<StreamKey, ListActivityStreamData> streamCache = StreamContext.getStreamCache();
       
       ListActivityStreamData data = streamCache.get(newKey);
       if (data == null) return;
       
       data.remove(activity.getId(), identityId);
     }
+    
+   
+    
+    
   }
   
   public static class CACHED {
@@ -535,6 +577,9 @@ public class StreamHelper {
       clearStream(identityId2, ActivityType.FEED);
       clearStream(identityId2, ActivityType.CONNECTION);
       clearStream(identityId2, ActivityType.VIEWER);
+      //
+      StreamContext.clearConnectionCountCache(identityId1);
+      StreamContext.clearConnectionCountCache(identityId2);
     }
     
     /**
@@ -569,12 +614,14 @@ public class StreamHelper {
     private static void clearStream(String identityId, ActivityType type) {
       StreamKey newKey = StreamKey.init(identityId).key(type);
       
-      ExoCache<StreamKey, ListActivityStreamData> streamCache = getStreamCache();
+      ExoCache<StreamKey, ListActivityStreamData> streamCache = StreamContext.getStreamCache();
       
       ListActivityStreamData data = streamCache.get(newKey);
       if (data == null) return;
       
       data.clear();
+      
+      StreamContext.clearMySpacesCountCache(identityId);
     }
   }
 }

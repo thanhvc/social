@@ -48,6 +48,7 @@ import org.exoplatform.social.core.storage.cache.model.key.ListActivitiesKey;
 import org.exoplatform.social.core.storage.cache.model.key.StreamKey;
 import org.exoplatform.social.core.storage.cache.selector.ActivityOwnerCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ActivityStreamOwnerCacheSelector;
+import org.exoplatform.social.core.storage.cache.selector.NewerOlderStreamCountCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ScopeCacheSelector;
 import org.exoplatform.social.core.storage.impl.ActivityBuilderWhere;
 import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
@@ -93,7 +94,7 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
 
     try {
       exoActivitiesCache.select(new ScopeCacheSelector<ListActivitiesKey, ListActivitiesData>());
-      exoActivitiesCountCache.select(new ScopeCacheSelector<ActivityCountKey, IntegerData>());
+      exoActivitiesCountCache.select(new NewerOlderStreamCountCacheSelector());
     }
     catch (Exception e) {
       LOG.error(e);
@@ -101,17 +102,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
 
   }
   
-  public void clearCacheCount() {
-
-    try {
-      exoActivitiesCountCache.select(new ScopeCacheSelector<ActivityCountKey, IntegerData>());
-    }
-    catch (Exception e) {
-      LOG.error(e);
-    }
-
-  }
-
   void clearOwnerCache(String ownerId) {
 
     try {
@@ -152,6 +142,17 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     ActivityKey key = new ActivityKey(activityId);
     exoActivityCache.remove(key);
     clearCache();
+  }
+  
+  private void updateCommentCountCaching(String activityId, boolean isIncrease) {
+    ActivityCountKey key = new ActivityCountKey(activityId, ActivityType.COMMENTS);
+    IntegerData data = exoActivitiesCountCache.get(key);
+    if (isIncrease) {
+      data.increase();
+    } else {
+      data.decrease();
+    }
+    
   }
   
   /**
@@ -306,6 +307,7 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     ActivityKey activityKey = new ActivityKey(activity.getId());
     exoActivityCache.put(activityKey, new ActivityData(activity));
     clearCache();
+    updateCommentCountCaching(activity.getId(), true);
   }
 
   /**
@@ -390,6 +392,7 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     StreamHelper.REMOVE.removeMentioners(removedList, newActivity);
     this.commit(false);
     clearActivityCached(activityId);
+    updateCommentCountCaching(activityId, false);
   }
 
   /**
@@ -1030,10 +1033,8 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
    * {@inheritDoc}
    */
   public int getNumberOfComments(final ExoSocialActivity existingActivity) {
-    
     //
-    ActivityCountKey key =
-        new ActivityCountKey(existingActivity.getId(), ActivityType.COMMENTS);
+    ActivityCountKey key = new ActivityCountKey(existingActivity.getId(), ActivityType.COMMENTS);
 
     //
     return activitiesCountCache.get(
