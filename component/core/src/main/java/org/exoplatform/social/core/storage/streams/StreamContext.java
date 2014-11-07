@@ -139,7 +139,7 @@ public class StreamContext {
    */
   public static ExoCache<StreamKey, ListActivityStreamData> getStreamCache() {
     SocialStorageCacheService cacheService = CommonsUtils.getService(SocialStorageCacheService.class);
-    return cacheService.getStreamCache();
+    return cacheService == null ?  null : cacheService.getStreamCache();
   }
   
   /**
@@ -157,11 +157,12 @@ public class StreamContext {
    */
   public static void clearConnectionCountCache(final String streamOwnerId) {
     ExoCache<ActivityCountKey, IntegerData> countCache = getActivitiesCountCache();
+    if (countCache == null) return;
     try {
       countCache.select(new ConnectionStreamCountCacheSelector(streamOwnerId));
     }
     catch (Exception e) {
-      LOG.error(e);
+      LOG.error("thanhvc :: " + streamOwnerId + e);
     }
     
   }
@@ -171,11 +172,12 @@ public class StreamContext {
    */
   public static void clearMySpacesCountCache(final String streamOwnerId) {
     ExoCache<ActivityCountKey, IntegerData> countCache = getActivitiesCountCache();
+    if (countCache == null) return;
     try {
       countCache.select(new MySpacesStreamCountCacheSelector(streamOwnerId));
     }
     catch (Exception e) {
-      LOG.error(e);
+      LOG.error("thanhvc :: " + streamOwnerId + e);
     }
     
   }

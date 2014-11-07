@@ -376,7 +376,10 @@ public interface ActivityStorage {
    * @return
    * @throws ActivityStorageException
    * @since 1.2.0-Beta3
-    */
+   * @deprecated it will be removed on PLF 4.1.0. Using getUserActivities method instead of
+   * 
+   */
+  @Deprecated
   public List<ExoSocialActivity> getActivitiesOfIdentity(Identity ownerIdentity, long offset, long limit);
 
   /**
