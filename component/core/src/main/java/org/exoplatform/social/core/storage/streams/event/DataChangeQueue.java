@@ -16,12 +16,9 @@
  */
 package org.exoplatform.social.core.storage.streams.event;
 
-import java.lang.ref.SoftReference;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import org.exoplatform.social.core.storage.impl.StorageUtils;
 import org.exoplatform.social.core.storage.streams.listener.DataChangeListener;
 
 
@@ -32,7 +29,7 @@ import org.exoplatform.social.core.storage.streams.listener.DataChangeListener;
  * Oct 30, 2014  
  */
 @SuppressWarnings("serial")
-public class DataChangeQueue<M> extends LinkedList<SoftReference<DataChange<M>>> implements DataChangeListener<M> {
+public class DataChangeQueue<M> extends LinkedList<DataChange<M>> implements DataChangeListener<M> {
 
   public DataChangeQueue() {}
   
@@ -43,40 +40,26 @@ public class DataChangeQueue<M> extends LinkedList<SoftReference<DataChange<M>>>
    * @param listener
    */
   public void broadcast(DataChangeListener<M> listener) {
-    ListIterator<SoftReference<DataChange<M>>> it = this.listIterator();
+    ListIterator<DataChange<M>> it = this.listIterator();
     while(it.hasNext()) {
-      it.next().get().dispatch(listener);
+      it.next().dispatch(listener);
     }
   }
   
   public void onAdd(M target) {
     DataChange<M> change = new DataChange.Add<M>(target);
-    addLast(StorageUtils.softReference(change));
+    addLast(change);
     
   }
 
   public void onDelete(M target) {
     DataChange<M> change = new DataChange.Delete<M>(target);
-    addLast(StorageUtils.softReference(change));
+    addLast(change);
   }
 
   public void onUpdate(M target) {
     DataChange<M> change = new DataChange.Update<M>(target);
-    addLast(StorageUtils.softReference(change));
+    addLast(change);
   }
   
-  @Override
-  public int indexOf(Object o) {
-    int index = 0;
-    Iterator<SoftReference<DataChange<M>>> it = iterator();
-    while(it.hasNext()) {
-      SoftReference<DataChange<M>> item = it.next();
-      if (o.equals(item.get().target)) {
-        return index;
-      }
-      index++;
-    }
-    
-    return -1;
-  }
 }

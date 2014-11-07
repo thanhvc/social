@@ -16,11 +16,8 @@
  */
 package org.exoplatform.social.core.storage.streams.event;
 
-import java.lang.ref.SoftReference;
 import java.util.Collections;
 import java.util.List;
-
-import org.exoplatform.social.core.storage.impl.StorageUtils;
 
 
 /**
@@ -31,7 +28,7 @@ import org.exoplatform.social.core.storage.impl.StorageUtils;
  */
 public final class DataContext<M> {
   /** */
-  private DataChangeQueue<M> changes;
+  private DataChangeQueue<M> changes = new DataChangeQueue<M>();
   
   /**
    * Constructor the DataContext to update 
@@ -48,26 +45,26 @@ public final class DataContext<M> {
   }
   
   public boolean hasChanges() {
-    return changes != null && changes.size() > 0;
+    return changes.size() > 0;
   }
   
   public boolean contains(M model) {
     if (changes == null) return false;
-    
-    int index = indexOf(model);
-    return index > -1;
+    DataChange<M> change = new DataChange<M>(model);
+    return changes.contains(change);
   }
   
   public int indexOf(M model) {
     if (changes == null) return -1;
-    return this.changes.indexOf(model);
+    DataChange<M> change = new DataChange<M>(model);
+    return this.changes.indexOf(change);
   }
   
   public M get(int index) {
     if (changes == null) return null;
     
-    SoftReference<DataChange<M>> got = this.changes.get(index);
-    return (got != null) ? got.get().target : null; 
+    DataChange<M> got = this.changes.get(index);
+    return (got != null) ? got.target : null; 
   }
   
   public void remove(int index) {
@@ -76,15 +73,11 @@ public final class DataContext<M> {
   }
   
   public int getChangesSize() {
-    return changes != null ? changes.size() : 0;
+    return changes.size();
   }
   
   private void addChange(DataChange<M> change) {
-    if (changes == null) {
-      changes = new DataChangeQueue<M>();
-    }
-    //
-    changes.addLast(StorageUtils.softReference(change));
+    changes.addLast(change);
   }
   
   /**
@@ -108,14 +101,17 @@ public final class DataContext<M> {
    * @param target
    */
   public void update(M target) {
-    addChange(new DataChange.Update<M>(target));
+    DataChange.Update<M> update = new DataChange.Update<M>(target);
+    if (changes.indexOf(update) == -1) {
+      addChange(new DataChange.Update<M>(target));
+    }
   }
   
   public DataChangeQueue<M> getChanges() {
-    return changes == null ? new DataChangeQueue<M>() : changes;
+    return changes;
   }
   
-  public List<SoftReference<DataChange<M>>> peekChanges() {
+  public List<DataChange<M>> peekChanges() {
     if (hasChanges()) {
       return changes;
     } else {
@@ -126,7 +122,7 @@ public final class DataContext<M> {
   public DataChangeQueue<M> popChanges() {
     if (hasChanges()) {
       DataChangeQueue<M> tmp = changes;
-      changes = null;
+      changes = new DataChangeQueue<M>();
       return tmp;
     } else {
       return null;
@@ -136,7 +132,7 @@ public final class DataContext<M> {
   public M pop(M target) {
     int pos = changes.indexOf(target);
     if (pos >= 0) {
-      DataChange<M> change = changes.get(pos).get();
+      DataChange<M> change = changes.get(pos);
       if (change != null) {
         M result = change.target;
         changes.remove(pos);

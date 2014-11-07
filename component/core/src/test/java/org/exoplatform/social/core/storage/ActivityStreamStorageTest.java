@@ -38,6 +38,7 @@ import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 
 
@@ -103,6 +104,7 @@ public class ActivityStreamStorageTest extends AbstractCoreTest {
       spaceService.deleteSpace(space);
     }
     super.tearDown();
+    DataChangeMerger.reset();
   }
 
   public void testSaveActivity() throws ActivityStorageException {

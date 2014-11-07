@@ -16,7 +16,6 @@
  */
 package org.exoplatform.social.core.storage.streams.event;
 
-import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -28,6 +27,7 @@ import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
 import org.exoplatform.social.core.storage.cache.model.key.StreamKey;
 import org.exoplatform.social.core.storage.impl.ActivityStreamStorageImpl.ActivityRefType;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 
 /**
  * Created by The eXo Platform SAS
@@ -59,11 +59,11 @@ public class DataChangeMerger {
    */
   public static List<StreamChange<StreamKey, String>> getChangeList(final StreamChange.Kind kind) {
     List<StreamChange<StreamKey, String>> filted = new LinkedList<StreamChange<StreamKey, String>>();
-    Iterator<SoftReference<DataChange<StreamChange<StreamKey, String>>>> it = dataContext.getChanges().iterator();
+    Iterator<DataChange<StreamChange<StreamKey, String>>> it = dataContext.getChanges().iterator();
     while(it.hasNext()) {
-      SoftReference<DataChange<StreamChange<StreamKey, String>>> got = it.next();
+      DataChange<StreamChange<StreamKey, String>> got = it.next();
       if (got != null) {
-        StreamChange<StreamKey, String> change = got.get().target;
+        StreamChange<StreamKey, String> change = got.target;
         if (change.getKind().equals(kind)) {
           filted.add(change);
         }
@@ -80,11 +80,11 @@ public class DataChangeMerger {
    */
   public static List<StreamChange<StreamKey, String>> getChangeList(final StreamKey key, final StreamChange.Kind kind) {
     List<StreamChange<StreamKey, String>> filted = new LinkedList<StreamChange<StreamKey, String>>();
-    Iterator<SoftReference<DataChange<StreamChange<StreamKey, String>>>> it = dataContext.getChanges().iterator();
+    Iterator<DataChange<StreamChange<StreamKey, String>>> it = dataContext.getChanges().iterator();
     while(it.hasNext()) {
-      SoftReference<DataChange<StreamChange<StreamKey, String>>> got = it.next();
+      DataChange<StreamChange<StreamKey, String>> got = it.next();
       if (got != null) {
-        StreamChange<StreamKey, String> change = got.get().target;
+        StreamChange<StreamKey, String> change = got.target;
         if (change.getKind().equals(kind) && change.getKey().equals(key)) {
           filted.add(change);
         }
@@ -101,11 +101,11 @@ public class DataChangeMerger {
    */
   public static List<StreamChange<StreamKey, String>> getChangeList(final StreamKey key) {
     List<StreamChange<StreamKey, String>> filted = new LinkedList<StreamChange<StreamKey, String>>();
-    Iterator<SoftReference<DataChange<StreamChange<StreamKey, String>>>> it = dataContext.getChanges().iterator();
+    Iterator<DataChange<StreamChange<StreamKey, String>>> it = dataContext.getChanges().iterator();
     while(it.hasNext()) {
-      SoftReference<DataChange<StreamChange<StreamKey, String>>> got = it.next();
+      DataChange<StreamChange<StreamKey, String>> got = it.next();
       if (got != null) {
-        StreamChange<StreamKey, String> change = got.get().target;
+        StreamChange<StreamKey, String> change = got.target;
         if (change.getKey().equals(key)) {
           filted.add(change);
         }
@@ -156,6 +156,7 @@ public class DataChangeMerger {
       index = dataContext.indexOf(add);
       if (index >-1) {
         dataContext.remove(index);
+        StreamContext.decreaseCount(ownerId, streamKey.getType());
         return;//don't add remove
       }
       
@@ -167,12 +168,14 @@ public class DataChangeMerger {
       switch (kind) {
       case ADD:
         dataContext.add(SimpleStreamDataChange.create(kind, streamKey, id, ownerId).build());
+        StreamContext.increaseCount(ownerId, streamKey.getType());
         break;
       case MOVE:
         dataContext.update(SimpleStreamDataChange.create(kind, streamKey, id, ownerId).build());
         break;
       case DELETE:
         dataContext.delete(SimpleStreamDataChange.create(kind, streamKey, id, ownerId).build());
+        StreamContext.decreaseCount(ownerId, streamKey.getType());
         break;
       }
     } else {
@@ -189,9 +192,9 @@ public class DataChangeMerger {
   public static Map<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>> transformToMap(DataChangeQueue<StreamChange<StreamKey, String>> changes) {
     Map<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>> map = new HashMap<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>>();
     
-    Iterator<SoftReference<DataChange<StreamChange<StreamKey, String>>>>  it = changes.iterator();
+    Iterator<DataChange<StreamChange<StreamKey, String>>>  it = changes.iterator();
     while(it.hasNext()) {
-      DataChange<StreamChange<StreamKey, String>> change = it.next().get();
+      DataChange<StreamChange<StreamKey, String>> change = it.next();
       StreamKey key = change.target.getKey();
       
       List<DataChange<StreamChange<StreamKey, String>>> list = map.get(key);

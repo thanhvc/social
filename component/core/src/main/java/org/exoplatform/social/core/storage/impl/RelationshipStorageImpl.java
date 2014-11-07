@@ -46,6 +46,7 @@ import org.exoplatform.social.core.storage.cache.CachedActivityStreamStorage;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 import org.exoplatform.social.core.storage.query.WhereExpression;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.storage.streams.StreamHelper;
 import org.exoplatform.social.core.storage.streams.StreamInvocationHelper;
 
@@ -458,10 +459,11 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
 
         symmetricalRelationship.getParent().getParent().getRelationship().getRelationships()
             .put(symmetricalRelationship.getName(), symmetricalRelationship);
-        
-        StreamInvocationHelper.connect(relationship.getSender(), relationship.getReceiver());
         //
         StreamHelper.CACHED.clearConnection(sender.getId(), receiver.getId());
+        //
+        StreamInvocationHelper.connect(relationship.getSender(), relationship.getReceiver());
+        
         break;
       
       // TODO : IGNORED

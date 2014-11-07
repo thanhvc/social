@@ -19,6 +19,18 @@ package org.exoplatform.social.core.storage.streams;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
+import org.exoplatform.services.cache.ExoCache;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+import org.exoplatform.social.core.storage.cache.SocialStorageCacheService;
+import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
+import org.exoplatform.social.core.storage.cache.model.data.ListActivityStreamData;
+import org.exoplatform.social.core.storage.cache.model.key.ActivityCountKey;
+import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
+import org.exoplatform.social.core.storage.cache.model.key.IdentityKey;
+import org.exoplatform.social.core.storage.cache.model.key.StreamKey;
+import org.exoplatform.social.core.storage.cache.selector.ConnectionStreamCountCacheSelector;
+import org.exoplatform.social.core.storage.cache.selector.MySpacesStreamCountCacheSelector;
 
 /**
  * Created by The eXo Platform SAS
@@ -27,6 +39,9 @@ import org.exoplatform.container.xml.ValueParam;
  * Oct 30, 2014  
  */
 public class StreamContext {
+  
+  /** Logger */
+  private static final Log LOG = ExoLogger.getLogger(StreamContext.class);
 
   /** */
   static final String INTERVAL_ACTIVITY_PERSIST_THRESHOLD = "exo.social.activity.interval.persist.threshold";
@@ -116,5 +131,90 @@ public class StreamContext {
     }
     
     return instance;
+  }
+  
+  /**
+   * 
+   * @return
+   */
+  public static ExoCache<StreamKey, ListActivityStreamData> getStreamCache() {
+    SocialStorageCacheService cacheService = CommonsUtils.getService(SocialStorageCacheService.class);
+    return cacheService.getStreamCache();
+  }
+  
+  /**
+   * 
+   * @return
+   */
+  public static ExoCache<ActivityCountKey, IntegerData> getActivitiesCountCache() {
+    SocialStorageCacheService cacheService = CommonsUtils.getService(SocialStorageCacheService.class);
+    return cacheService == null ?  null : cacheService.getActivitiesCountCache();
+  }
+  
+  /**
+   * Clear connections stream cache count
+   * @param streamOwnerId
+   */
+  public static void clearConnectionCountCache(final String streamOwnerId) {
+    ExoCache<ActivityCountKey, IntegerData> countCache = getActivitiesCountCache();
+    try {
+      countCache.select(new ConnectionStreamCountCacheSelector(streamOwnerId));
+    }
+    catch (Exception e) {
+      LOG.error(e);
+    }
+    
+  }
+  /**
+   * Clear my spaces stream cache count
+   * @param streamOwnerId
+   */
+  public static void clearMySpacesCountCache(final String streamOwnerId) {
+    ExoCache<ActivityCountKey, IntegerData> countCache = getActivitiesCountCache();
+    try {
+      countCache.select(new MySpacesStreamCountCacheSelector(streamOwnerId));
+    }
+    catch (Exception e) {
+      LOG.error(e);
+    }
+    
+  }
+  
+  /**
+   * Puts the activity into the stream
+   * 
+   * @param posterId
+   * @param type
+   */
+  public static void increaseCount(String posterId, ActivityType type) {
+    ActivityCountKey key = new ActivityCountKey(new IdentityKey(posterId), type);
+    
+    ExoCache<ActivityCountKey, IntegerData> countCache = StreamContext.getActivitiesCountCache();
+    
+    if (countCache == null) return;
+    
+    IntegerData data = countCache.get(key);
+    if (data != null) {
+      data.increase();
+    }
+  }
+  
+  /**
+   * Decrease the count size
+   * 
+   * @param posterId
+   * @param type
+   */
+  public static void decreaseCount(String posterId, ActivityType type) {
+    ActivityCountKey key = new ActivityCountKey(new IdentityKey(posterId), type);
+    
+    ExoCache<ActivityCountKey, IntegerData> countCache = StreamContext.getActivitiesCountCache();
+    
+    if (countCache == null) return;
+    
+    IntegerData data = countCache.get(key);
+    if (data != null) {
+      data.decrease();
+    }
   }
 }

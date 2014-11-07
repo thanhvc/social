@@ -87,6 +87,10 @@ public class ActivityCountKey extends ScopeCacheKey {
   public ActivityKey getActivityKey() {
     return activityKey;
   }
+  
+  public ActivityType getActivityType() {
+    return type;
+  }
 
   @Override
   public boolean equals(final Object o) {
