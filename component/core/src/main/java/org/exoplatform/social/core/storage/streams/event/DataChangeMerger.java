@@ -195,16 +195,20 @@ public class DataChangeMerger {
     Iterator<DataChange<StreamChange<StreamKey, String>>>  it = changes.iterator();
     while(it.hasNext()) {
       DataChange<StreamChange<StreamKey, String>> change = it.next();
-      StreamKey key = change.target.getKey();
-      
-      List<DataChange<StreamChange<StreamKey, String>>> list = map.get(key);
-      
-      if (list == null) {
-        list = new LinkedList<DataChange<StreamChange<StreamKey, String>>>();
-        map.put(key, list);
+      //
+      if (change != null && change.target != null) {
+        StreamKey key = change.target.getKey();
+        if (key != null) {
+          List<DataChange<StreamChange<StreamKey, String>>> list = map.get(key);
+          
+          if (list == null) {
+            list = new LinkedList<DataChange<StreamChange<StreamKey, String>>>();
+            map.put(key, list);
+          }
+          
+          list.add(change);
+        }
       }
-      
-      list.add(change);
     }
     
     return map;
