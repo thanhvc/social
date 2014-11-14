@@ -18,11 +18,14 @@
 package org.exoplatform.social.core.storage.cache;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.Validate;
+import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -34,6 +37,7 @@ import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.storage.ActivityStorageException;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
+import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.cache.loader.ServiceContext;
 import org.exoplatform.social.core.storage.cache.model.data.ActivityData;
 import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
@@ -223,7 +227,7 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     logWatch = new LogWatch("Persister action ");
 
   }
-
+  
   /**
    * {@inheritDoc}
    */
@@ -291,9 +295,11 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
    * {@inheritDoc}
    */
   public void saveComment(final ExoSocialActivity activity, final ExoSocialActivity comment) throws ActivityStorageException {
-    //get old mentioners list
-    ExoSocialActivity old = getActivity(activity.getId());
-    List<String> oldMentioners = StorageUtils.getIdentityIds(old.getMentionedIds());
+    List<String> oldMentioners = Collections.emptyList();
+    if (activity.getId() != null) {
+      ExoSocialActivity old = getActivity(activity.getId());
+      oldMentioners = StorageUtils.getIdentityIds(old.getMentionedIds());
+    }
     
     storage.saveComment(activity, comment);
     
@@ -317,6 +323,13 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
    * {@inheritDoc}
    */
   public ExoSocialActivity saveActivity(final Identity owner, final ExoSocialActivity activity) throws ActivityStorageException {
+    try {
+      Validate.notNull(owner, "owner must not be null.");
+      Validate.notNull(activity, "activity must not be null.");
+    } catch (IllegalArgumentException e) {
+      throw new ActivityStorageException(ActivityStorageException.Type.ILLEGAL_ARGUMENTS, e.getMessage(), e);
+    }
+    
     boolean isNew = activity.getId() == null;
     //
     ExoSocialActivity a = storage.saveActivity(owner, activity);
@@ -576,7 +589,7 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
   private List<ExoSocialActivity> buildActivitiesFromStream(ListActivityStreamData data, final long offset, final long limit) {
     List<ExoSocialActivity> activities = new ArrayList<ExoSocialActivity>();
     long to = Math.min(data.size(), offset + limit);
-    List<String> ids = data.subList((int)offset, (int)to);
+    List<String> ids = Collections.synchronizedList(data.subList((int)offset, (int)to));
     for (String id : ids) {
       ExoSocialActivity a = getActivity(id);
       if (a != null && !a.isHidden()) {

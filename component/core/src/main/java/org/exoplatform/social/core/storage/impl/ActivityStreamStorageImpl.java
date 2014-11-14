@@ -339,13 +339,13 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
     IdentityEntity identityEntity = identityStorage._findIdentityEntity(identity.getProviderId(), identity.getRemoteId());
     ActivityRefListEntity refList = type.refsOf(identityEntity);
     ActivityRef ref = refList.get(activityEntity, oldUpdated);
-    HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, false);
+    boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, false);
     if (ref != null) {
       LOG.trace("remove activityRefId " +  ref.getId() +" for commenter: " + identityEntity.getRemoteId());
-      refList.remove(activityEntity, hidableActivity.getHidden(), oldUpdated);
+      refList.remove(activityEntity, hideValue, oldUpdated);
     }
     
-    refList.getOrCreated(activityEntity, hidableActivity.getHidden() );
+    refList.getOrCreated(activityEntity, hideValue);
   }
 
   private void createRefForPoster(ActivityEntity activityEntity, long oldUpdated) throws NodeNotFoundException {
@@ -1020,7 +1020,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
   }
   
   private void manageRefList(UpdateContext context, ActivityEntity activityEntity, ActivityRefType type, boolean mustCheck) throws NodeNotFoundException {
-    HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, true);
+    boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, true);
     if (context.getAdded() != null) {
       for (Identity identity : context.getAdded()) {
         IdentityEntity identityEntity = identityStorage._findIdentityEntity(identity.getProviderId(), identity.getRemoteId());
@@ -1033,7 +1033,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
         
         
         ActivityRefListEntity listRef = type.refsOf(identityEntity);
-        listRef.getOrCreated(activityEntity,  hidableActivity.getHidden());
+        listRef.getOrCreated(activityEntity,  hideValue);
       }
     }
     
@@ -1043,7 +1043,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
         IdentityEntity identityEntity = identityStorage._findIdentityEntity(identity.getProviderId(), identity.getRemoteId());
           
         ActivityRefListEntity listRef = type.refsOf(identityEntity);
-        listRef.remove(activityEntity, hidableActivity.getHidden(), null);
+        listRef.remove(activityEntity, hideValue, null);
       }
     }
   }
@@ -1060,10 +1060,10 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
         return;
     }
     
-    HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, false);
+    boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, false);
 
     ActivityRefListEntity listRef = type.refsOf(identityEntity);
-    ActivityRef ref = listRef.getOrCreated(activityEntity, hidableActivity.getHidden());
+    ActivityRef ref = listRef.getOrCreated(activityEntity, hideValue);
 
     if (ref.getName() == null) {
       ref.setName(activityEntity.getName());
@@ -1141,12 +1141,12 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       //
       for (ExoSocialActivity a : activities) {
         ActivityEntity activityEntity = getSession().findById(ActivityEntity.class, a.getId());
-        HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, true);
+        boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, true);
         
 
         // migration 3.5.x => 4.x, lastUpdated of Activity is NULL, then use
         // createdDate for replacement
-        ActivityRef ref = listRef.getOrCreated(activityEntity, hidableActivity.getHidden());
+        ActivityRef ref = listRef.getOrCreated(activityEntity, hideValue);
         ref.setActivityEntity(activityEntity);
       }
       
@@ -1170,8 +1170,8 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       IdentityEntity identityEntity = identityStorage._findById(IdentityEntity.class, owner.getId());
       ActivityRefListEntity listRef = type.create(identityEntity);
       ActivityEntity activityEntity = getSession().findById(ActivityEntity.class, activity.getId());
-      HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, true);
-      ActivityRef ref = listRef.getOrCreated(activityEntity, hidableActivity.getHidden());
+      boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, true);
+      ActivityRef ref = listRef.getOrCreated(activityEntity, hideValue);
       ref.setActivityEntity(activityEntity);
     } catch (NodeNotFoundException e) {
       LOG.warn("Failed to create Activity references and the exeception : " + e.getMessage());
@@ -1251,7 +1251,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, true);
       hidableActivity.setHidden(activity.isHidden());
       for (ActivityRef ref : references) {
-        if (hidableActivity.getHidden() == false) {
+        if (!activity.isHidden()) {
           ref.getDay().inc();
         } else {
           ref.getDay().desc();

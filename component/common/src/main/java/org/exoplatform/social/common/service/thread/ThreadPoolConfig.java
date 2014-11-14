@@ -84,8 +84,7 @@ public class ThreadPoolConfig implements Serializable {
     
     //
     try {
-      //this.priority = Integer.valueOf(threadPriority.getValue());
-      this.priority = Thread.MAX_PRIORITY;
+      this.priority = Integer.valueOf(threadPriority.getValue());
     }
     catch (Exception e) {
       this.priority = Thread.MAX_PRIORITY;
