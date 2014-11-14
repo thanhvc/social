@@ -93,4 +93,10 @@ public abstract class ActivityMonthEntity implements NamedEntity, IndexNumber {
     return dayEntity;
 
   }
+  
+  public boolean hasDay(String day) {
+    ActivityDayEntity dayEntity = getDays().get(day);
+    return dayEntity != null;
+
+  }
 }

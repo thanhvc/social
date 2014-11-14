@@ -102,5 +102,11 @@ public abstract class ActivityYearEntity implements NamedEntity, IndexNumber {
     return monthEntity;
 
   }
+  
+  public boolean hasMonth(String month) {
+    ActivityMonthEntity monthEntity = getMonths().get(month);
+    return monthEntity != null;
+
+  }
 
 }

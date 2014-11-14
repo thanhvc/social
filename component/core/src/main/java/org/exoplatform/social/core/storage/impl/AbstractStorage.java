@@ -32,6 +32,7 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.common.lifecycle.SocialChromatticLifeCycle;
 import org.exoplatform.social.core.chromattic.entity.HidableEntity;
+import org.exoplatform.social.core.chromattic.entity.LockableEntity;
 import org.exoplatform.social.core.chromattic.entity.ProviderRootEntity;
 import org.exoplatform.social.core.chromattic.entity.SpaceRootEntity;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
@@ -167,16 +168,42 @@ public abstract class AbstractStorage {
     if (mixin == null && create) {
       mixin = getSession().create(mixinType);
       getSession().setEmbedded(o, mixinType, mixin);
+      return mixin;
+    } else if (mixin != null && !create){
+      return mixin;
+    } else {
+      return mixin;
     }
-    //Fix for case old activity node without mixinType Hidable.
-    if (mixin != null && mixinType.equals(HidableEntity.class)) {
-      HidableEntity hidableEntity = (HidableEntity) mixin;
-      if (hidableEntity.getHidden() == null) {
-        hidableEntity.setHidden(false);
-        getSession().save();
-      }
+  }
+  
+  protected <M> boolean getHidableMixinValue(Object o, Class<M> mixinType, boolean create) {
+    M m = _getMixin(o, mixinType, create);
+    //
+    if (m == null) return false;
+    //
+    if (m != null && mixinType.equals(HidableEntity.class)) {
+      HidableEntity hidableEntity = (HidableEntity) m;
+      if (hidableEntity.getHidden() == null) 
+        return false;
+      else 
+        return hidableEntity.getHidden().booleanValue();
     }
-    return mixin;
+    return true;
+  }
+  
+  protected <M> boolean getLockableMixinValue(Object o, Class<M> mixinType, boolean create) {
+    M m = _getMixin(o, mixinType, create);
+    //
+    if (m == null) return false;
+    //
+    if (m != null && mixinType.equals(LockableEntity.class)) {
+      LockableEntity lockableEntity = (LockableEntity) m;
+      if (lockableEntity.getLocked() == null) 
+        return false;
+      else 
+        return lockableEntity.getLocked().booleanValue();
+    }
+    return true;
   }
 
   protected <M> boolean _removeMixin(Object o, Class<M> mixinType) {

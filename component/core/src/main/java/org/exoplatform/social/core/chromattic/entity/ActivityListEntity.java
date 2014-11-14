@@ -86,4 +86,21 @@ public abstract class ActivityListEntity {
     return yearEntity;
 
   }
+  
+  public boolean hasYearMonthDay(String year, String month, String day) {
+    ActivityYearEntity yearEntity = getYears().get(year);
+    
+    if (yearEntity == null) return false;
+    
+    boolean hasYearMonthDayNode = false;
+    
+    hasYearMonthDayNode &= yearEntity.hasMonth(month);
+    
+    if (!hasYearMonthDayNode) return false;
+    
+    hasYearMonthDayNode &= yearEntity.getMonth(month).hasDay(day);
+    
+    return hasYearMonthDayNode;
+
+  }
 }

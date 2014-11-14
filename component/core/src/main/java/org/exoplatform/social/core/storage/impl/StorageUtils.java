@@ -382,9 +382,22 @@ public class StorageUtils {
   public static boolean persist() {
     try {
       ChromatticSession chromatticSession = AbstractStorage.lifecycleLookup().getSession();
-      if (chromatticSession.getJCRSession().hasPendingChanges()) {
-        chromatticSession.save();
-      }
+      chromatticSession.save();
+    } catch (Exception e) {
+      return false;
+    }
+    return true;
+  }
+  
+  /**
+   * Refresh the current session
+   * 
+   * @return
+   */
+  public static boolean refreshSession() {
+    try {
+      ChromatticSession chromatticSession = AbstractStorage.lifecycleLookup().getSession();
+      chromatticSession.getJCRSession().refresh(true);
     } catch (Exception e) {
       return false;
     }
