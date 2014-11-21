@@ -192,7 +192,6 @@ public class ActivityManagerImpl implements ActivityManager {
     existingActivity.setLikeIdentityIds(identityIds);
     updateActivity(existingActivity);
     //
-    StreamHelper.MOVE.addLike(identity.getId(), existingActivity);
     activityLifeCycle.likeActivity(existingActivity);
   }
 

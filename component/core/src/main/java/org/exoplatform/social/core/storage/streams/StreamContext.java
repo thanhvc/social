@@ -162,7 +162,7 @@ public class StreamContext {
       countCache.select(new ConnectionStreamCountCacheSelector(streamOwnerId));
     }
     catch (Exception e) {
-      LOG.error("thanhvc :: " + streamOwnerId + e);
+      LOG.error(e.getMessage(), e);
     }
     
   }
@@ -177,7 +177,7 @@ public class StreamContext {
       countCache.select(new MySpacesStreamCountCacheSelector(streamOwnerId));
     }
     catch (Exception e) {
-      LOG.error("thanhvc :: " + streamOwnerId + e);
+      LOG.error(e.getMessage(), e);
     }
     
   }
