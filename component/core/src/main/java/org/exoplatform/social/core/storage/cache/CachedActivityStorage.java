@@ -25,7 +25,6 @@ import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.Validate;
-import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -37,7 +36,6 @@ import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.storage.ActivityStorageException;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
-import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.cache.loader.ServiceContext;
 import org.exoplatform.social.core.storage.cache.model.data.ActivityData;
 import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
@@ -336,7 +334,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     
     if (isNew && !activity.isHidden()) {
       StreamHelper.ADD.addActivity(activity);
-      StreamHelper.ADD.addMentioners(activity);
       this.commit(false);
     }
     //
