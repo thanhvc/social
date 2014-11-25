@@ -16,6 +16,7 @@
  */
 package org.exoplatform.social.core.manager;
 
+import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
@@ -32,6 +33,8 @@ import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.ActivityStorageException;
+import org.exoplatform.social.core.storage.cache.CachedActivityStorage;
+import org.exoplatform.social.core.storage.streams.persister.PersisterScheduler;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit Test for {@link ActivityManager}, including cache tests.
@@ -1004,6 +1008,16 @@ public class ActivityManagerTest extends AbstractCoreTest {
     List<ExoSocialActivity> activities = activityManager.getActivities(johnIdentity, 0, retrievedCount);
     assertEquals(retrievedCount, activities.size());
   }
+  
+  private void await(int timeOut) {
+    CachedActivityStorage cachedActivityStorage = (CachedActivityStorage) CommonsUtils.getService(CachedActivityStorage.class);
+    PersisterScheduler scheduler = cachedActivityStorage.getScheduler();
+    try {
+      scheduler.getSynchronizationLock().await(timeOut, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.error(e);
+    }
+  }
 
   /**
    * Test {@link ActivityManager#getActivityFeed(Identity)}
@@ -1015,12 +1029,15 @@ public class ActivityManagerTest extends AbstractCoreTest {
     this.populateActivityMass(demoIdentity, 3);
     this.populateActivityMass(maryIdentity, 3);
     this.populateActivityMass(johnIdentity, 2);
+    await(500);
     
     List<ExoSocialActivity> demoActivityFeed = activityManager.getActivityFeed(demoIdentity);
     assertEquals(3, demoActivityFeed.size());
+    assertEquals(3, activityManager.getActivityFeedWithListAccess(demoIdentity).getSize());
 
     Space space = this.getSpaceInstance(spaceService, 0);
     Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+    assertEquals(3, activityManager.getActivityFeedWithListAccess(demoIdentity).getSize());
     populateActivityMass(spaceIdentity, 5);
 
     demoActivityFeed = activityManager.getActivityFeed(demoIdentity);
