@@ -21,6 +21,8 @@ import java.util.List;
 
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.cache.ExoCache;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
@@ -41,6 +43,10 @@ import org.exoplatform.social.core.storage.impl.StorageUtils;
  * Oct 31, 2014  
  */
 public class StreamHelper {
+  
+  /** Logger */
+  private static final Log LOG = ExoLogger.getLogger(StreamHelper.class);
+  
   /**
    * Gets the RelationshipStorage component
    * @return
@@ -91,7 +97,6 @@ public class StreamHelper {
     public static void addActivity(ExoSocialActivity activity) {
       String posterId = activity.getPosterId();
       String streamOwnerId = activity.getActivityStream().getId();
-      
       boolean isSpaceOwner = isSpaceActivity(activity.getActivityStream().getType().toString());
       
       if (isSpaceOwner) {
@@ -186,14 +191,19 @@ public class StreamHelper {
      */
     private static void putSpaceMembersAndStreamOwner(String spaceOwnerId, ExoSocialActivity activity) {
       putToStream(spaceOwnerId, activity, ActivityType.SPACE);
+      //just makes in User Stream for user identity without space identity
+      Identity posterIdentity = getIdentityStorage().findIdentityById(activity.getUserId());
+      if (posterIdentity.getProviderId().equals(OrganizationIdentityProvider.NAME.toString())) {
+        putToStream(activity.getUserId(), activity, ActivityType.USER);
+      }
       
       Identity identity = getIdentityStorage().findIdentityById(spaceOwnerId);
       Space space = getSpaceStorage().getSpaceByPrettyName(identity.getRemoteId());
       
       if (space != null) {
         List<Identity> spaceMembers = getMemberIdentities(space);
-
         for (Identity key : spaceMembers) {
+          LOG.debug("remoteId: " + key.getRemoteId());
           putToStream(key.getId(), activity, ActivityType.FEED);
           putToStream(key.getId(), activity, ActivityType.SPACES);
         }
@@ -220,6 +230,7 @@ public class StreamHelper {
         streamCache.put(newKey, data);
       }
       
+      LOG.debug("moveToTop:: identity : " + posterId + " activity: " + activity.getTitle() + " stream: " + type.toString());
       data.putAtTop(activity.getId(), posterId);
     }
     
@@ -300,7 +311,7 @@ public class StreamHelper {
 
         for (Identity key : spaceMembers) {
           moveTopStream(key.getId(), activity, ActivityType.FEED);
-          moveTopStream(key.getId(), activity, ActivityType.SPACE);
+          moveTopStream(key.getId(), activity, ActivityType.SPACES);
         }
       }
       
@@ -394,7 +405,7 @@ public class StreamHelper {
         data = new ListActivityStreamData(newKey);
         streamCache.put(newKey, data);
       }
-      
+      LOG.debug("moveToTop:: identity : " + identityId + " activity: " + activity.getTitle() + " stream: " + type.toString());
       data.moveTop(activity.getId(), identityId);
     }
   }
@@ -573,13 +584,10 @@ public class StreamHelper {
     public static void clearConnection(String identityId1, String identityId2) {
       clearStream(identityId1, ActivityType.FEED);
       clearStream(identityId1, ActivityType.CONNECTION);
-      clearStream(identityId1, ActivityType.VIEWER);
+      //clearStream(identityId1, ActivityType.VIEWER);
       clearStream(identityId2, ActivityType.FEED);
       clearStream(identityId2, ActivityType.CONNECTION);
-      clearStream(identityId2, ActivityType.VIEWER);
-      //
-      StreamContext.clearConnectionCountCache(identityId1);
-      StreamContext.clearConnectionCountCache(identityId2);
+      //clearStream(identityId2, ActivityType.VIEWER);
     }
     
     /**
@@ -621,7 +629,7 @@ public class StreamHelper {
       
       data.clear();
       
-      StreamContext.clearMySpacesCountCache(identityId);
+      StreamContext.clearMySpacesCountCache(identityId, type);
     }
   }
 }

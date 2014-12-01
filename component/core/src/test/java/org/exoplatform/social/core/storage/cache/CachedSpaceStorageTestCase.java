@@ -10,6 +10,7 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 import org.exoplatform.social.core.test.MaxQueryNumber;
 import org.exoplatform.social.core.test.QueryNumberTest;
@@ -38,6 +39,7 @@ public class CachedSpaceStorageTestCase extends AbstractCoreTest {
   public void setUp() throws Exception {
     super.setUp();
     begin();
+    StreamContext.instanceInContainer().switchSchedulerOnOff(false);
 
     cachedSpaceStorage = (CachedSpaceStorage) getContainer().getComponentInstanceOfType(CachedSpaceStorage.class);
     cachedActivityStorage = (CachedActivityStorage) getContainer().getComponentInstanceOfType(CachedActivityStorage.class);
@@ -76,14 +78,16 @@ public class CachedSpaceStorageTestCase extends AbstractCoreTest {
     identityStorage.deleteIdentity(john);
     identityStorage.deleteIdentity(root);
     
+    StreamContext.instanceInContainer().switchSchedulerOnOff(true);
     end();
     super.tearDown();
   }
 
 
-  @MaxQueryNumber(150)
+  @MaxQueryNumber(170)
   public void testRemoveSpace() throws Exception {
 
+    cacheService.getStreamCache().clearCache();
     //
     Space space = new Space();
     space.setDisplayName("Hello");
@@ -91,7 +95,7 @@ public class CachedSpaceStorageTestCase extends AbstractCoreTest {
     cachedSpaceStorage.saveSpace(space, true);
 
     //
-    Identity i = new Identity("foo", "bar");
+    Identity i = new Identity(SpaceIdentityProvider.NAME, "bar");
     identityStorage.saveIdentity(i);
 
     //
@@ -105,7 +109,7 @@ public class CachedSpaceStorageTestCase extends AbstractCoreTest {
     is.add(i);
     assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
     cachedActivityStorage.getActivitiesOfIdentities(is, 0, 10).size();
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(1, cacheService.getStreamCache().getCacheSize());
     
     //
     cachedSpaceStorage.deleteSpace(space.getId());

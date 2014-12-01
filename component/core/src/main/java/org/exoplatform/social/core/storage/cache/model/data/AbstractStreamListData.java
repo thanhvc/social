@@ -74,6 +74,9 @@ public abstract class AbstractStreamListData<K, V> implements Serializable {
    */
   public List<V> subList(int from, int to) {
     if (from >= this.list.size()) return Collections.emptyList();
+    //
+    if (to == -1) return this.list;
+    //
     int newTo = Math.min(to, this.list.size());
     return this.list.subList(from, newTo);
   }

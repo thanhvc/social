@@ -865,6 +865,8 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
           StreamInvocationHelper.update(activity, oldUpdated);
         }
       }
+      
+      getSession().save();
     }  
     catch (NodeNotFoundException e) {
       throw new ActivityStorageException(ActivityStorageException.Type.FAILED_TO_SAVE_COMMENT, e.getMessage(), e);
@@ -1042,9 +1044,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
       _removeById(ActivityEntity.class, activityId);
 
       //
-      //getSession().save();
-      StorageUtils.persist();
-
+      getSession().save();
       //
       LOG.debug(String.format(
           "Activity or comment %s by %s (%s) removed",
@@ -1894,6 +1894,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
       if (changedActivity.getTemplateParams() == null && activityEntity.getParams() != null) changedActivity.setTemplateParams(activityEntity.getParams().getParams());
       _saveActivity(changedActivity);
       processActivity(changedActivity);
+      getSession().save();
     }
     catch (NodeNotFoundException e) {
       throw new ActivityStorageException(ActivityStorageException.Type.FAILED_TO_SAVE_ACTIVITY, e.getMessage());

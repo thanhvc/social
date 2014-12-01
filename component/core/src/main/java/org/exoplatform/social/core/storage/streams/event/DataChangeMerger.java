@@ -137,10 +137,10 @@ public class DataChangeMerger {
    * @param ownerId
    */
   public static void merge(StreamChange.Kind kind, StreamKey streamKey, String id, String ownerId) {
+    if (!StreamContext.instanceInContainer().isOnScheduler()) return;
     //2 cases need to consider.
     //+ Adds already happened recently(temporary status),....., then REMOVE is next >> All Changes must be clear.
     //+ Pushed to storage, some MOVE ready, then REMOVE, All changes must be clear, just keep REMOVE
-    
     //don't add change for Viewer stream
     if (ActivityType.VIEWER == streamKey.getType()) return;
     
@@ -182,6 +182,9 @@ public class DataChangeMerger {
       StreamChange<StreamKey, String> existing = dataContext.get(indexOfFirstOccurrence);
       existing.setRevision(change.getRevision());
     }
+    //
+    
+    StreamContext.instanceInContainer().getActivityPersister().commit(false);
   }
   
   /**

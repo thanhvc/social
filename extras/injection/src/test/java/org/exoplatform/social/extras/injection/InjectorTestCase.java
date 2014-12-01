@@ -500,6 +500,12 @@ public class InjectorTestCase extends AbstractKernelTest {
     Identity user3 = identityManager.getOrCreateIdentity("organization", identityInjector.userNameSuffixPattern(3), false);
     Identity user4 = identityManager.getOrCreateIdentity("organization", identityInjector.userNameSuffixPattern(4), false);
 
+    assertEquals(0, activityManager.getActivitiesWithListAccess(user0).getSize());
+    assertEquals(0, activityManager.getActivitiesWithListAccess(user1).getSize());
+    assertEquals(0, activityManager.getActivitiesWithListAccess(user2).getSize());
+    assertEquals(0, activityManager.getActivitiesWithListAccess(user3).getSize());
+    assertEquals(0, activityManager.getActivitiesWithListAccess(user4).getSize());
+    
     //
     params.put("number", "5");
     params.put("fromUser", "1");
@@ -554,11 +560,11 @@ public class InjectorTestCase extends AbstractKernelTest {
     activityInjector.inject(params);
 
     //
-    assertEquals(1, activityManager.getActivitiesWithListAccess(space_user0).getSize());
-    assertEquals(6, activityManager.getActivitiesWithListAccess(space_user1).getSize());
-    assertEquals(6, activityManager.getActivitiesWithListAccess(space_user2).getSize());
-    assertEquals(6, activityManager.getActivitiesWithListAccess(space_user3).getSize());
-    assertEquals(1, activityManager.getActivitiesWithListAccess(space_user4).getSize());
+    assertEquals(1, activityManager.getActivitiesOfSpaceWithListAccess(space_user0).getSize());
+    assertEquals(6, activityManager.getActivitiesOfSpaceWithListAccess(space_user1).getSize());
+    assertEquals(6, activityManager.getActivitiesOfSpaceWithListAccess(space_user2).getSize());
+    assertEquals(6, activityManager.getActivitiesOfSpaceWithListAccess(space_user3).getSize());
+    assertEquals(1, activityManager.getActivitiesOfSpaceWithListAccess(space_user4).getSize());
 
 
     //

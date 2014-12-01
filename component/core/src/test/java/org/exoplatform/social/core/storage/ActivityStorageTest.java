@@ -21,7 +21,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.log.ExoLogger;
@@ -41,9 +40,7 @@ import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
-import org.exoplatform.social.core.storage.cache.CachedActivityStorage;
 import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
-import org.exoplatform.social.core.storage.streams.persister.PersisterScheduler;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 import org.exoplatform.social.core.test.MaxQueryNumber;
 import org.exoplatform.social.core.test.QueryNumberTest;
@@ -103,6 +100,14 @@ public class ActivityStorageTest extends AbstractCoreTest {
   @Override
   protected void tearDown() throws Exception {
     DataChangeMerger.reset();
+    for (ExoSocialActivity activity : tearDownActivityList) {
+      try {
+        activityManager.deleteActivity(activity.getId());
+      } catch (Exception e) {
+        LOG.warn("can not delete activity with id: " + activity.getId());
+      }
+    }
+    
     identityStorage.deleteIdentity(rootIdentity);
     identityStorage.deleteIdentity(johnIdentity);
     identityStorage.deleteIdentity(maryIdentity);
@@ -132,23 +137,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     }
     
     return got;
-  }
-  
-  /**
-   * Provides the number milliseconds to ask waiting
-   * 
-   * @param timeOut
-   */
-  private void await(int timeOut) {
-    if (activityStorage instanceof CachedActivityStorage) {
-      CachedActivityStorage cachedActivityStorage = (CachedActivityStorage) activityStorage;
-      PersisterScheduler scheduler = cachedActivityStorage.getScheduler();
-      try {
-        scheduler.getSynchronizationLock().await(timeOut, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException e) {
-        LOG.error(e);
-      }
-    }
   }
   
   /**
@@ -534,8 +522,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     Relationship maryDemoConnection = relationshipManager.invite(maryIdentity, demoIdentity);
     relationshipManager.confirm(maryDemoConnection);
     
-    await(500);
-    
     List<ExoSocialActivity> demoActivityFeed = activityStorage.getActivityFeed(demoIdentity, 0, 10);
     ExoSocialActivity firstActivity = demoActivityFeed.get(0);
     int newDemoActivityFeed = activityStorage.getNumberOfNewerOnActivityFeed(demoIdentity, firstActivity);
@@ -613,8 +599,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(1, demoIdentity);
     this.createActivities(2, johnIdentity);
     this.createActivities(3, maryIdentity);
-    
-    await(500);
     
     List<ExoSocialActivity> activities = activityStorage.getActivitiesOfConnections(demoIdentity, 0, 10);
     assertNotNull("activities must not be null", activities);
@@ -812,8 +796,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(2, johnIdentity);
     this.createActivities(3, maryIdentity);
     
-    await(500);
-    
     int count = activityStorage.getNumberOfActivitiesOfConnections(demoIdentity);
     assertEquals(0, count);
     
@@ -858,8 +840,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(1, demoIdentity);
     this.createActivities(2, johnIdentity);
     this.createActivities(2, rootIdentity);
-    
-    await(500);
     
     List<ExoSocialActivity> demoActivities = activityStorage.getActivitiesOfIdentity(demoIdentity, 0, 10);
     assertNotNull("demoActivities must not be null", demoActivities);
@@ -914,8 +894,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(2, johnIdentity);
     this.createActivities(2, rootIdentity);
     
-    await(500);
-
     List<ExoSocialActivity> maryActivities = activityStorage.getActivitiesOfIdentity(maryIdentity, 0, 10);
     assertNotNull("maryActivities must not be null", maryActivities);
     assertEquals("maryActivities.size() must return: 3", 3, maryActivities.size());
@@ -983,8 +961,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       this.createActivities(2, johnIdentity);
       this.createActivities(2, rootIdentity);
       
-      this.await(500);
-      
       List<ExoSocialActivity> rootActivities = activityStorage.getActivitiesOfIdentity(rootIdentity, 0, 10);
       assertNotNull("rootActivities must not be null", rootActivities);
       assertEquals("rootActivities.size() must return: 2", 2, rootActivities.size());
@@ -1042,8 +1018,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(1, demoIdentity);
     this.createActivities(2, johnIdentity);
     this.createActivities(2, rootIdentity);
-    
-    await(500);
     
     List<ExoSocialActivity> rootActivities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertNotNull("rootActivities must not be null", rootActivities);
@@ -1110,19 +1084,13 @@ public class ActivityStorageTest extends AbstractCoreTest {
     for (int i = 0; i < totalNumber; i ++) {
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setTitle("activity title " + i);
-      activity.setUserId(demoIdentity.getId());
+      activity.setPosterId(demoIdentity.getId());
       activityStorage.saveActivity(spaceIdentity, activity);
       tearDownActivityList.add(activity);
     }
     
-    space = spaceService.getSpaceByDisplayName(space.getDisplayName());
-    assertNotNull("space must not be null", space);
-    assertEquals("space.getDisplayName() must return: my space 0", "my space 0", space.getDisplayName());
-    assertEquals("space.getDescription() must return: add new space 0", "add new space 0", space.getDescription());
-    
     List<ExoSocialActivity> demoActivities = activityStorage.getUserSpacesActivities(demoIdentity, 0, 10);
-    assertNotNull("demoActivities must not be null", demoActivities);
-    assertEquals("demoActivities.size() must return: 2", totalNumber, demoActivities.size());
+    assertEquals(totalNumber, demoActivities.size());
     
     Space space2 = this.getSpaceInstance(spaceService, 1);
     Identity spaceIdentity2 = this.identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space2.getPrettyName(), false);
@@ -1131,18 +1099,13 @@ public class ActivityStorageTest extends AbstractCoreTest {
     for (int i = 0; i < totalNumber; i ++) {
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setTitle("activity title " + i);
-      activity.setUserId(demoIdentity.getId());
+      activity.setPosterId(demoIdentity.getId());
       activityStorage.saveActivity(spaceIdentity2, activity);
       tearDownActivityList.add(activity);
     }
     
-    space2 = spaceService.getSpaceByDisplayName(space2.getDisplayName());
-    assertNotNull("space2 must not be null", space2);
-    assertEquals("space2.getDisplayName() must return: my space 1", "my space 1", space2.getDisplayName());
-    assertEquals("space2.getDescription() must return: add new space 1", "add new space 1", space2.getDescription());
-    
     demoActivities = activityStorage.getUserSpacesActivities(demoIdentity, 0, 20);
-    assertEquals("demoActivities.size() must return: 4", 4, demoActivities.size());
+    assertEquals(4, demoActivities.size());
     
     tearDownSpaceList.add(space);
     tearDownSpaceList.add(space2);
@@ -1270,8 +1233,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       }
     }
     
-    await(500);
-    
     space = spaceService.getSpaceByDisplayName(space.getDisplayName());
     assertNotNull("space must not be null", space);
     assertEquals("space.getDisplayName() must return: my space 0", "my space 0", space.getDisplayName());
@@ -1331,8 +1292,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
         baseActivity = activity;
       }
     }
-    
-    await(500);
     
     space = spaceService.getSpaceByDisplayName(space.getDisplayName());
     assertNotNull("space must not be null", space);
@@ -1439,8 +1398,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(2, johnIdentity);
     this.createActivities(2, rootIdentity);
     
-    await(500);
-
     List<ExoSocialActivity> maryActivities = activityStorage.getActivitiesOfIdentity(maryIdentity,0,10);
     assertNotNull("maryActivities must not be null", maryActivities);
     assertEquals(3, maryActivities.size());
@@ -1560,8 +1517,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
         baseActivity = activity;
       }
     }
-    
-    await(500);
     
     space = spaceService.getSpaceByDisplayName(space.getDisplayName());
     assertNotNull("space must not be null", space);
@@ -1686,8 +1641,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       activityStorage.saveComment(activity, comment);
     }
     
-    await(500);
-    
     List<ExoSocialActivity> comments = activityStorage.getComments(activity, 0, 40);
     assertNotNull("comments must not be null", comments);
     assertEquals("comments.size() must return: 40", 40, comments.size());
@@ -1716,8 +1669,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       comment.setUserId(johnIdentity.getId());
       activityStorage.saveComment(activity, comment);
     }
-    
-    await(500);
     
     List<ExoSocialActivity> comments = activityStorage.getComments(activity, 0, 40);
     assertNotNull("comments must not be null", comments);
@@ -1758,8 +1709,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       comment.setUserId(demoIdentity.getId());
       activityStorage.saveComment(activity, comment);
     }
-    
-    await(500);
     
     List<ExoSocialActivity> comments = activityStorage.getComments(activity, 0, 10);
     assertNotNull("comments must not be null", comments);
@@ -1811,8 +1760,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       activityStorage.saveComment(activity, comment);
     }
     
-    await(500);
-    
     List<ExoSocialActivity> comments = activityStorage.getComments(activity, 0, 10);
     assertNotNull("comments must not be null", comments);
     assertEquals("comments.size() must return: 10", 10, comments.size());
@@ -1858,8 +1805,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       activityStorage.saveComment(activity, comment);
     }
     
-    await(500);
-    
     List<ExoSocialActivity> comments = activityStorage.getComments(activity, 0, 10);
     assertNotNull("comments must not be null", comments);
     assertEquals("comments.size() must return: 10", 10, comments.size());
@@ -1903,8 +1848,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       comment.setUserId(johnIdentity.getId());
       activityStorage.saveComment(activity, comment);
     }
-    
-    await(500);
     
     List<ExoSocialActivity> comments = activityStorage.getComments(activity, 0, 10);
     assertNotNull("comments must not be null", comments);
@@ -2305,8 +2248,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
     this.createActivities(2, johnIdentity);
     this.createActivities(2, rootIdentity);
     
-    await(500);
-
     List<ExoSocialActivity> rootActivities = activityStorage.getActivitiesOfIdentity(rootIdentity,0,10);
     assertNotNull("rootActivities must not be null", rootActivities);
     assertEquals("rootActivities.size() must return: 2", 2, rootActivities.size());
@@ -2397,8 +2338,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
       }
     }
     
-    await(500);
-
     space = spaceService.getSpaceByDisplayName(space.getDisplayName());
     assertNotNull("space must not be null", space);
     assertEquals("space.getDisplayName() must return: my space 0","my space 0",space.getDisplayName());
@@ -2477,8 +2416,6 @@ public class ActivityStorageTest extends AbstractCoreTest {
         id = activity.getId();
       }
     }
-    
-    await(500);
     
     space = spaceService.getSpaceByDisplayName(space.getDisplayName());
     assertNotNull("space must not be null", space);

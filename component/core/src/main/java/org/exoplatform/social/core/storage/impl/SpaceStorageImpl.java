@@ -340,7 +340,7 @@ public class SpaceStorageImpl extends AbstractStorage implements SpaceStorage {
     return l.toArray(new String[]{});
   }
 
-  private void createRefs(SpaceEntity spaceEntity, Space space) throws NodeNotFoundException {
+  private void createRefs(SpaceEntity spaceEntity, Space space, boolean isNew) throws NodeNotFoundException {
 
     String[] removedMembers = sub(spaceEntity.getMembersId(), space.getMembers());
     String[] removedManagers = sub(spaceEntity.getManagerMembersId(), space.getManagers());
@@ -353,8 +353,10 @@ public class SpaceStorageImpl extends AbstractStorage implements SpaceStorage {
     String[] addedPending = sub(space.getPendingUsers(), spaceEntity.getPendingMembersId());
 
     manageRefList(new UpdateContext(addedMembers, removedMembers), spaceEntity, RefType.MEMBER);
-    manageActivityRefList(new UpdateContext(addedMembers, removedMembers), spaceEntity, RefType.MEMBER);
-    
+    if (!isNew) {
+      manageActivityRefList(new UpdateContext(addedMembers, removedMembers), spaceEntity, RefType.MEMBER);
+    }
+
     manageRefList(new UpdateContext(addedManagers, removedManagers), spaceEntity, RefType.MANAGER);
     manageRefList(new UpdateContext(addedInvited, removedInvited), spaceEntity, RefType.INVITED);
     manageRefList(new UpdateContext(addedPending, removedPending), spaceEntity, RefType.PENDING);
@@ -844,7 +846,7 @@ public class SpaceStorageImpl extends AbstractStorage implements SpaceStorage {
       }
 
       //
-      createRefs(entity, space);
+      createRefs(entity, space, isNew);
       
       fillEntityFromSpace(space, entity);
 

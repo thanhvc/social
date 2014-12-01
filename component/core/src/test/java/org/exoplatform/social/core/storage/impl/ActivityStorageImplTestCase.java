@@ -17,24 +17,6 @@
 
 package org.exoplatform.social.core.storage.impl;
 
-import org.exoplatform.container.xml.InitParams;
-import org.exoplatform.social.core.BaseActivityProcessorPlugin;
-import org.exoplatform.social.core.activity.model.ExoSocialActivity;
-import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
-import org.exoplatform.social.core.application.RelationshipPublisher.TitleId;
-import org.exoplatform.social.core.identity.model.Identity;
-import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
-import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
-import org.exoplatform.social.core.space.model.Space;
-import org.exoplatform.social.core.storage.ActivityStorageException;
-import org.exoplatform.social.core.storage.api.IdentityStorage;
-import org.exoplatform.social.core.storage.api.SpaceStorage;
-import org.exoplatform.social.core.test.AbstractCoreTest;
-import org.exoplatform.social.core.test.MaxQueryNumber;
-import org.exoplatform.social.core.test.QueryNumberTest;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -43,6 +25,30 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.exoplatform.commons.utils.CommonsUtils;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+import org.exoplatform.social.core.BaseActivityProcessorPlugin;
+import org.exoplatform.social.core.activity.model.ExoSocialActivity;
+import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
+import org.exoplatform.social.core.application.RelationshipPublisher.TitleId;
+import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
+import org.exoplatform.social.core.manager.ActivityManager;
+import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
+import org.exoplatform.social.core.space.model.Space;
+import org.exoplatform.social.core.storage.ActivityStorageException;
+import org.exoplatform.social.core.storage.api.ActivityStorage;
+import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.api.SpaceStorage;
+import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
+import org.exoplatform.social.core.test.AbstractCoreTest;
+import org.exoplatform.social.core.test.MaxQueryNumber;
+import org.exoplatform.social.core.test.QueryNumberTest;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
@@ -55,7 +61,8 @@ import java.util.Map;
 @QueryNumberTest
 public class ActivityStorageImplTestCase extends AbstractCoreTest {
   private IdentityStorage identityStorage;
-  private ActivityStorageImpl activityStorage;
+  private ActivityStorage activityStorage;
+  private ActivityManager activityManager;
   private RelationshipStorageImpl relationshipStorage;
   private List<ExoSocialActivity> tearDownActivityList;
   private List<Space>  tearDownSpaceList;
@@ -71,7 +78,8 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     super.setUp();
 
     identityStorage = (IdentityStorage) getContainer().getComponentInstanceOfType(IdentityStorage.class);
-    activityStorage = (ActivityStorageImpl) getContainer().getComponentInstanceOfType(ActivityStorageImpl.class);
+    activityStorage = CommonsUtils.getService(ActivityStorage.class);
+    activityManager = CommonsUtils.getService(ActivityManager.class);
     relationshipStorage = (RelationshipStorageImpl) getContainer().getComponentInstanceOfType(RelationshipStorageImpl.class);
     spaceStorage = (SpaceStorage) this.getContainer().getComponentInstanceOfType(SpaceStorage.class);
     
@@ -100,7 +108,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
 
   @Override
   protected void tearDown() throws Exception {
-
+    DataChangeMerger.reset();
     for (ExoSocialActivity activity : tearDownActivityList) {
       activityStorage.deleteActivity(activity.getId());
     }
@@ -123,6 +131,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     //
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("title ");
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
 
@@ -150,6 +159,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
   public void testTemplateParams() throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("title ");
+    activity.setUserId(rootIdentity.getId());
     Map<String, String> templateParams = new LinkedHashMap<String, String>();
     templateParams.put("key1", "value1");
     templateParams.put("key2", "value2");
@@ -174,6 +184,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("&");
     activity.setBody("test&amp;");
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
 
@@ -184,8 +195,6 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     got.setTitle(null);
     
     activityStorage.updateActivity(got);
-    
-    ExoSocialActivity updatedActivity = activityStorage.getActivity(activity.getId());
     
     assertEquals(activity.getId(), got.getId());
     assertEquals(activity.getTitle(), got.getTitle());
@@ -199,6 +208,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("a");
     activity.setBody("test");
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
 
@@ -233,21 +243,20 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("&");
     activity.setBody("test&amp;");
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
 
     //
     ExoSocialActivity got = activityStorage.getActivity(activity.getId());
-    
-    got.setLikeIdentityIds(new String[] {maryIdentity.getId()});
-    activityStorage.updateActivity(got);
-    
+    activityManager.saveLike(activity, maryIdentity);
+    assertEquals(1, activity.getLikeIdentityIds().length);
     
     ExoSocialActivity updatedActivity = activityStorage.getActivity(activity.getId());
     
     assertEquals(got.getId(), updatedActivity.getId());
-    assertNotSame(got.getTitle(), updatedActivity.getTitle());
-    assertNotSame(got.getBody(), updatedActivity.getBody());
+    assertEquals(got.getTitle(), updatedActivity.getTitle());
+    assertEquals(got.getBody(), updatedActivity.getBody());
 
   }
 
@@ -257,6 +266,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     //
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("title ");
+    activity.setUserId(rootIdentity.getId());
     activity.setLikeIdentityIds(new String[] {maryIdentity.getId()});
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
@@ -292,24 +302,16 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("&");
     activity.setBody("test&amp;");
-    activity.setLikeIdentityIds(new String[] {maryIdentity.getId()});
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
+    
+    activityManager.saveLike(activity, maryIdentity);
+    assertEquals(1, activity.getLikeIdentityIds().length);
 
     //
-    ExoSocialActivity got = activityStorage.getActivity(activity.getId());
-    
-    
-    got.setLikeIdentityIds(new String[] {});
-    activityStorage.updateActivity(got);
-    
-    
-    ExoSocialActivity updatedActivity = activityStorage.getActivity(activity.getId());
-    
-    assertEquals(got.getId(), updatedActivity.getId());
-    assertNotSame(got.getTitle(), updatedActivity.getTitle());
-    assertNotSame(got.getBody(), updatedActivity.getBody());
-
+    activityManager.deleteLike(activity, maryIdentity);
+    assertEquals(0, activity.getLikeIdentityIds().length);
   }
 
   @MaxQueryNumber(264)
@@ -349,34 +351,31 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
 
   @MaxQueryNumber(1940)
   public void testActivityCount() throws Exception {
+    assertEquals(0, activityStorage.getNumberOfUserActivities(rootIdentity));
 
     // fill 10 activities
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 5; ++i) {
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setTitle("title " + i);
+      activity.setUserId(rootIdentity.getId());
       activityStorage.saveActivity(rootIdentity, activity);
+      tearDownActivityList.add(activity);
     }
 
     //
-    assertEquals(10, activityStorage.getNumberOfUserActivities(rootIdentity));
+    assertEquals(5, activityStorage.getNumberOfUserActivities(rootIdentity));
 
     // remove 5 activities
-    Iterator<ExoSocialActivity> it = activityStorage.getUserActivities(rootIdentity, 0, 100).iterator();
+    Iterator<ExoSocialActivity> it = activityStorage.getUserActivities(rootIdentity, 0, 10).iterator();
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 2; ++i) {
       activityStorage.deleteActivity(it.next().getId());
     }
     
-    it = activityStorage.getUserActivities(rootIdentity, 0, 100).iterator();
+    it = activityStorage.getUserActivities(rootIdentity, 0, 10).iterator();
     
     //
-    assertEquals(5, activityStorage.getNumberOfUserActivities(rootIdentity));
-    
-    while(it.hasNext()) {
-      tearDownActivityList.add(it.next());
-    }
-
-
+    assertEquals(3, activityStorage.getNumberOfUserActivities(rootIdentity));
   }
 
   /**
@@ -421,7 +420,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     }
 
     int i = 9;
-    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity)) {
+    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity, 0, 10)) {
       assertEquals("title " + i, activity.getTitle());
       --i;
     }
@@ -444,7 +443,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     }
 
     int i = 9;
-    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity)) {
+    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity, 0, 10)) {
       assertEquals("title " + i, activity.getTitle());
       
       if (i>5) {
@@ -478,7 +477,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     }
 
     int i = 9;
-    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity)) {
+    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity, 0, 10)) {
       assertEquals("title " + i, activity.getTitle());
       
       if (i>= 5) {
@@ -502,7 +501,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     }
 
     // remove 5 activities
-    Iterator<ExoSocialActivity> it = activityStorage.getUserActivities(rootIdentity).iterator();
+    Iterator<ExoSocialActivity> it = activityStorage.getUserActivities(rootIdentity, 0, 10).iterator();
 
     for (int i = 0; i < 5; ++i) {
       activityStorage.deleteActivity(it.next().getId());
@@ -520,7 +519,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
       tearDownActivityList.add(activity);
     }
 
-    List<ExoSocialActivity> activityies = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activityies = activityStorage.getUserActivities(rootIdentity, 0, 10);
     int i = 0;
     int[] values = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0};
     for (ExoSocialActivity activity : activityies) {
@@ -537,6 +536,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     activity.setTitle("title");
     activity.setBody("body");
     activity.isHidden(false);
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     assertNotNull(activity.getId());
 
@@ -620,6 +620,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
       Thread.sleep(10);
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setTitle("title " + i);
+      activity.setUserId(rootIdentity.getId());
       activityStorage.saveActivity(rootIdentity, activity);
       tearDownActivityList.add(activity);
 
@@ -634,7 +635,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     }
 
     int i = 9;
-    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity)) {
+    for (ExoSocialActivity activity : activityStorage.getUserActivities(rootIdentity, 0, 10)) {
       int j = 0;
       for (String commentId : activity.getReplyToId()) {
         if (!"".equals(commentId)) {
@@ -650,6 +651,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
   public void testDeleteComment() throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("activity title");
+    activity.setUserId(rootIdentity.getId());
 
     activityStorage.saveActivity(rootIdentity, activity);
     tearDownActivityList.add(activity);
@@ -672,7 +674,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     activity = activityStorage.getActivity(activity.getId());
     for (String commentId : activity.getReplyToId()) {
       if (!"".equals(commentId) && i < 5) {
-        activityStorage.deleteActivity(commentId);
+        activityStorage.deleteComment(activity.getId(), commentId);
         ++i;
       }
     }
@@ -684,15 +686,15 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
   public void testLike() throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("activity title");
+    activity.setUserId(rootIdentity.getId());
 
     activityStorage.saveActivity(rootIdentity, activity);
+    
+    activityManager.saveLike(activity, rootIdentity);
+    activityManager.saveLike(activity, johnIdentity);
+    activityManager.saveLike(activity, demoIdentity);
 
-    activity.setLikeIdentityIds(new String[] {rootIdentity.getId(), johnIdentity.getId(), demoIdentity.getId()});
-
-    activityStorage.saveActivity(rootIdentity, activity);
-
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
-
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertEquals(1, activities.size());
     assertEquals(3, activities.get(0).getLikeIdentityIds().length);
 
@@ -714,6 +716,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
 
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setTitle("root activity " + i);
+      activity.setUserId(rootIdentity.getId());
       activityStorage.saveActivity(rootIdentity, activity);
 
       ExoSocialActivity activity2 = new ExoSocialActivityImpl();
@@ -747,6 +750,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
   public void testTimeStamp() throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("activity title");
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
 
     ExoSocialActivity comment = new ExoSocialActivityImpl();
@@ -755,7 +759,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
 
     activityStorage.saveComment(activity, comment);
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
 
     assertEquals(1, activities.size());
     assertFalse(activities.get(0).getPostedTime() == 0);
@@ -787,7 +791,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     addActivity(rootIdentity, timestamp221);
     addActivity(rootIdentity, timestamp222);
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertEquals(8, activities.size());
     assertEquals(timestamp111, activities.get(7).getPostedTime().longValue());
     assertEquals(timestamp112, activities.get(6).getPostedTime().longValue());
@@ -811,7 +815,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
 
     activityStorage.deleteActivity(activity2.getId());
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertEquals(1, activities.size());
     assertEquals(timestamp1, activities.get(0).getPostedTime().longValue());
 
@@ -833,7 +837,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     activityStorage.deleteActivity(activity21.getId());
     activityStorage.deleteActivity(activity22.getId());
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertEquals(2, activities.size());
     assertEquals(timestamp11, activities.get(1).getPostedTime().longValue());
     assertEquals(timestamp12, activities.get(0).getPostedTime().longValue());
@@ -866,7 +870,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     activityStorage.deleteActivity(activity221.getId());
     activityStorage.deleteActivity(activity222.getId());
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertEquals(4, activities.size());
     assertEquals(timestamp111, activities.get(3).getPostedTime().longValue());
     assertEquals(timestamp112, activities.get(2).getPostedTime().longValue());
@@ -905,7 +909,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     activityStorage.deleteActivity(activity221.getId());
     activityStorage.deleteActivity(activity222.getId());
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertEquals(0, activities.size());
 
   }
@@ -914,6 +918,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
   public void testRelationshipActivity() throws Exception {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("I am now connected with @receiverRemoteId");
+    activity.setUserId(rootIdentity.getId());
     activity.setType("exosocial:relationship");
     //Shindig's Activity's fields
     activity.setAppId("appId");
@@ -932,7 +937,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     
     activityStorage.saveActivity(rootIdentity, activity);
     
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(rootIdentity, 0, 10);
     assertNotNull(activities);
     assertEquals(1, activities.size());
     
@@ -1034,6 +1039,7 @@ public class ActivityStorageImplTestCase extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle("activity title");
     activity.setPostedTime(timestamp);
+    activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
 
     return activity;

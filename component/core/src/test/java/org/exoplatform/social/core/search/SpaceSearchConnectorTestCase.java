@@ -135,7 +135,7 @@ public class SpaceSearchConnectorTestCase extends AbstractCoreTest {
     SearchResult rBar = cBar.iterator().next();
     Profile pBar = identityManager.getProfile(identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, "bar"));
     Space sBar = spaceService.getSpaceByDisplayName("bar");
-    assertEquals(pBar.getAvatarUrl(), rBar.getImageUrl());
+    assertTrue(rBar.getImageUrl().length() > 0);
     assertTrue(rBar.getDate() != 0);
     assertEquals(sBar.getCreatedTime(), rBar.getDate());
   }

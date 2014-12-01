@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -36,8 +37,11 @@ import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.model.Space.UpdatedField;
 import org.exoplatform.social.core.space.spi.SpaceLifeCycleEvent;
 import org.exoplatform.social.core.space.spi.SpaceService;
+import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
+import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 
 /**
@@ -58,17 +62,13 @@ public class SpaceActivityPublisherTest extends  AbstractCoreTest {
     super.setUp();
     tearDownActivityList = new ArrayList<ExoSocialActivity>();
     activityManager = (ActivityManager) getContainer().getComponentInstanceOfType(ActivityManager.class);
-    assertNotNull("activityManager must not be null", activityManager);
     identityManager =  (IdentityManager) getContainer().getComponentInstanceOfType(IdentityManager.class);
-    assertNotNull("identityManager must not be null", identityManager);
     spaceService = (SpaceService) getContainer().getComponentInstanceOfType(SpaceService.class);
-    assertNotNull("spaceService must not be null", spaceService);
     spaceStorage = (SpaceStorage) getContainer().getComponentInstanceOfType(SpaceStorage.class);
     assertNotNull(spaceStorage);
     spaceActivityPublisher = (SpaceActivityPublisher) getContainer().getComponentInstanceOfType(SpaceActivityPublisher.class);
-    assertNotNull("spaceActivityPublisher must not be null", spaceActivityPublisher);
     identityStorage =  (IdentityStorage) getContainer().getComponentInstanceOfType(IdentityStorage.class);
-    assertNotNull("identityStorage must not be null", identityStorage);
+    StreamContext.instanceInContainer().switchSchedulerOnOff(false);
   }
 
   @Override
@@ -80,6 +80,7 @@ public class SpaceActivityPublisherTest extends  AbstractCoreTest {
         LOG.warn("can not delete activity with id: " + activity.getId());
       }
     }
+    StreamContext.instanceInContainer().switchSchedulerOnOff(true);
     super.tearDown();
   }
 
@@ -246,76 +247,4 @@ public class SpaceActivityPublisherTest extends  AbstractCoreTest {
    
    
  }
- public void testSpaceHidden() throws Exception {
-   Identity rootIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "root", true);
-
-   //Create a hidden space
-   Space space = new Space();
-   space.setDisplayName("Toto");
-   space.setPrettyName(space.getDisplayName());
-   space.setGroupId("/platform/users");
-   space.setVisibility(Space.HIDDEN);
-   String[] managers = new String[] {"root"};
-   String[] members = new String[] {"root"};
-   space.setManagers(managers);
-   space.setMembers(members);
-   spaceService.saveSpace(space, true);
-   
-   //broadcast event
-   SpaceLifeCycleEvent event  = new SpaceLifeCycleEvent(space, rootIdentity.getRemoteId(), SpaceLifeCycleEvent.Type.SPACE_CREATED);
-   spaceActivityPublisher.spaceCreated(event);
-
-   Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-   ListAccess<ExoSocialActivity> spaceActivities = activityManager.getActivitiesOfSpaceWithListAccess(spaceIdentity);
-   ListAccess<ExoSocialActivity> userActivities = activityManager.getActivitiesWithListAccess(rootIdentity);
-   ListAccess<ExoSocialActivity> userFeedActivities = activityManager.getActivityFeedWithListAccess(rootIdentity);
-   
-   assertEquals(0, userFeedActivities.getSize());
-   assertEquals(0, userActivities.getSize());
-   
-   //Set space's visibility to PRIVATE
-   space.setVisibility(Space.PRIVATE);
-   spaceService.saveSpace(space, false);
-   
-   spaceActivities = activityManager.getActivitiesOfSpaceWithListAccess(spaceIdentity);
-   userActivities = activityManager.getActivitiesWithListAccess(rootIdentity);
-   userFeedActivities = activityManager.getActivityFeedWithListAccess(rootIdentity);
-   
-   //Check space activity stream
-   assertEquals(1, spaceActivities.getSize());
-   assertEquals(1, spaceActivities.load(0, 10).length);
-   
-   //Check user activity stream
-   assertEquals(1, userActivities.getSize());
-   assertEquals(1, userActivities.load(0, 10).length);
-   
-   //Check user feed activity stream
-   assertEquals(1, userFeedActivities.getSize());
-   assertEquals(1, userFeedActivities.load(0, 10).length);
-   
-   //Set space's visibility to PRIVATE
-   space.setVisibility(Space.HIDDEN);
-   spaceService.saveSpace(space, false);
-   
-   spaceActivities = activityManager.getActivitiesOfSpaceWithListAccess(spaceIdentity);
-   userActivities = activityManager.getActivitiesWithListAccess(rootIdentity);
-   userFeedActivities = activityManager.getActivityFeedWithListAccess(rootIdentity);
-   
-   //Check space activity stream
-   assertEquals(0, spaceActivities.getSize());
-   assertEquals(0, spaceActivities.load(0, 10).length);
-   
-   //Check user activity stream
-   assertEquals(0, userActivities.getSize());
-   assertEquals(0, userActivities.load(0, 10).length);
-   
-   //Check user feed activity stream
-   assertEquals(0, userFeedActivities.getSize());
-   assertEquals(0, userFeedActivities.load(0, 10).length);
-
-   //clean up
-   spaceService.deleteSpace(space);
-   identityManager.deleteIdentity(rootIdentity);
- }
-
 }

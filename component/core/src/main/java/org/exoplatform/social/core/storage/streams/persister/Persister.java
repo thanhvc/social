@@ -29,4 +29,10 @@ public interface Persister {
    * @param forceCommit
    */
   void commit(boolean forceCommit);
+  
+  /**
+   * Returns the Persister scheduler 
+   * @return
+   */
+  PersisterScheduler getScheduler();
 }

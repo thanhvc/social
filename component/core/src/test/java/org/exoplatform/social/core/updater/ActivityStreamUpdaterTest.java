@@ -28,6 +28,7 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 
 public class ActivityStreamUpdaterTest extends AbstractCoreTest {
@@ -55,6 +56,7 @@ public class ActivityStreamUpdaterTest extends AbstractCoreTest {
     streamStorage = (ActivityStreamStorage) getContainer().getComponentInstanceOfType(ActivityStreamStorage.class);
     
     activityStorage.setInjectStreams(false);
+    StreamContext.instanceInContainer().switchSchedulerOnOff(false);
     
     //
     assertNotNull("identityManager must not be null", identityStorage);
@@ -95,6 +97,7 @@ public class ActivityStreamUpdaterTest extends AbstractCoreTest {
     identityStorage.deleteIdentity(jameIdentity);
     
     activityStorage.setInjectStreams(true);
+    StreamContext.instanceInContainer().switchSchedulerOnOff(true);
     super.tearDown();
   }
 
@@ -141,10 +144,10 @@ public class ActivityStreamUpdaterTest extends AbstractCoreTest {
     assertNotNull(updaterPlugin);
     updaterPlugin.processUpgrade("1.2.x", "4.0");
     
-    assertEquals(100, streamStorage.getNumberOfFeed(rootIdentity));
-    assertEquals(100, streamStorage.getNumberOfFeed(demoIdentity));
-    assertEquals(100, streamStorage.getNumberOfFeed(maryIdentity));
-    assertEquals(100, streamStorage.getNumberOfFeed(johnIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(rootIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(demoIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(maryIdentity));
+    assertEquals(20, streamStorage.getNumberOfFeed(johnIdentity));
     
     List<ExoSocialActivity> got = activityStorage.getActivityFeed(rootIdentity, 0, 100);
     assertEquals(100, got.size());

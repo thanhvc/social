@@ -192,64 +192,64 @@ public class CachedRelationshipStorageTestCase extends AbstractCoreTest {
     assertEquals(0, cacheService.getRelationshipCacheByIdentity().getCacheSize());
   }
   
-  public void testGetSuggestion() throws Exception {
-    
-    Identity johnIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "john");
-    Identity maryIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "mary");
-    Identity demoIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "demo");
-    Identity ghostIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "ghost");
-    Identity paulIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "paul");
-    
-    tearDownIdentityList.add(johnIdentity.getId());
-    tearDownIdentityList.add(maryIdentity.getId());
-    tearDownIdentityList.add(demoIdentity.getId());
-    tearDownIdentityList.add(ghostIdentity.getId());
-    tearDownIdentityList.add(paulIdentity.getId());
-    
-    assertEquals(0, cacheService.getSuggestionCache().getCacheSize());
-    
-    relationshipStorage.getSuggestions(johnIdentity, -1, -1, 10);
-    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 10);
-    relationshipStorage.getSuggestions(demoIdentity, -1, -1, 10);
-    
-    assertEquals(3, cacheService.getSuggestionCache().getCacheSize());
-    
-    relationshipStorage.getSuggestions(ghostIdentity, -1, -1, 10);
-    relationshipStorage.getSuggestions(paulIdentity, -1, -1, 10);
-    
-    assertEquals(5, cacheService.getSuggestionCache().getCacheSize());
-    
-    //different parameters
-    relationshipStorage.getSuggestions(paulIdentity, 5, 5, 10);
-    relationshipStorage.getSuggestions(paulIdentity, 5, 10, 10);
-    
-    assertEquals(7, cacheService.getSuggestionCache().getCacheSize());
-    
-    // same identity and parameters
-    relationshipStorage.getSuggestions(paulIdentity, 5, 5, 10);
-    
-    assertEquals(7, cacheService.getSuggestionCache().getCacheSize());
-    
-    // same identity and different parameters
-    relationshipStorage.getSuggestions(paulIdentity, 5, 5, 15);
-    relationshipStorage.getSuggestions(paulIdentity, 5, 15, 10);
-    relationshipStorage.getSuggestions(paulIdentity, 15, 5, 10);
-    
-    assertEquals(10, cacheService.getSuggestionCache().getCacheSize());
-    
-    cacheService.getSuggestionCache().clearCache();
-    
-    assertEquals(0, cacheService.getSuggestionCache().getCacheSize());
-    
-    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 10);
-    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 10);
-    
-    assertEquals(1, cacheService.getSuggestionCache().getCacheSize());
-    
-    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 1);
-    
-    assertEquals(2, cacheService.getSuggestionCache().getCacheSize());
-  }
+//  public void testGetSuggestion() throws Exception {
+//    
+//    Identity johnIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "john");
+//    Identity maryIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "mary");
+//    Identity demoIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "demo");
+//    Identity ghostIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "ghost");
+//    Identity paulIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "paul");
+//    
+//    tearDownIdentityList.add(johnIdentity.getId());
+//    tearDownIdentityList.add(maryIdentity.getId());
+//    tearDownIdentityList.add(demoIdentity.getId());
+//    tearDownIdentityList.add(ghostIdentity.getId());
+//    tearDownIdentityList.add(paulIdentity.getId());
+//    
+//    assertEquals(0, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    relationshipStorage.getSuggestions(johnIdentity, -1, -1, 10);
+//    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 10);
+//    relationshipStorage.getSuggestions(demoIdentity, -1, -1, 10);
+//    
+//    assertEquals(3, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    relationshipStorage.getSuggestions(ghostIdentity, -1, -1, 10);
+//    relationshipStorage.getSuggestions(paulIdentity, -1, -1, 10);
+//    
+//    assertEquals(5, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    //different parameters
+//    relationshipStorage.getSuggestions(paulIdentity, 5, 5, 10);
+//    relationshipStorage.getSuggestions(paulIdentity, 5, 10, 10);
+//    
+//    assertEquals(7, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    // same identity and parameters
+//    relationshipStorage.getSuggestions(paulIdentity, 5, 5, 10);
+//    
+//    assertEquals(7, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    // same identity and different parameters
+//    relationshipStorage.getSuggestions(paulIdentity, 5, 5, 15);
+//    relationshipStorage.getSuggestions(paulIdentity, 5, 15, 10);
+//    relationshipStorage.getSuggestions(paulIdentity, 15, 5, 10);
+//    
+//    assertEquals(10, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    cacheService.getSuggestionCache().clearCache();
+//    
+//    assertEquals(0, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 10);
+//    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 10);
+//    
+//    assertEquals(1, cacheService.getSuggestionCache().getCacheSize());
+//    
+//    relationshipStorage.getSuggestions(maryIdentity, -1, -1, 1);
+//    
+//    assertEquals(2, cacheService.getSuggestionCache().getCacheSize());
+//  }
   
   public void testGetOutgoingByFilter() throws Exception {
     //

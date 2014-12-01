@@ -17,42 +17,32 @@
 package org.exoplatform.social.core.storage.cache.selector;
 
 import org.exoplatform.services.cache.ObjectCacheInfo;
-import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
-import org.exoplatform.social.core.storage.cache.model.key.ActivityCountKey;
+import org.exoplatform.social.core.storage.cache.model.data.ListActivitiesData;
 import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
+import org.exoplatform.social.core.storage.cache.model.key.ListActivitiesKey;
 
 /**
  * Created by The eXo Platform SAS
  * Author : eXoPlatform
  *          exo@exoplatform.com
- * Nov 6, 2014  
+ * Nov 26, 2014  
  */
-public class MySpacesStreamCountCacheSelector extends ScopeCacheSelector<ActivityCountKey, IntegerData> {
-
-  private String streamOwnerId;
-  private ActivityType type;
+public class CommentsCacheSelector extends ScopeCacheSelector<ListActivitiesKey, ListActivitiesData> {
   
+  private String activityId;
 
-  public MySpacesStreamCountCacheSelector(final String streamOwnerId, final ActivityType type) {
-    if (streamOwnerId == null) {
-      throw new NullPointerException("streamOwnerId is not null.");
-    }
-    
-    this.streamOwnerId = streamOwnerId;
-    this.type = type;
+  public CommentsCacheSelector(String activityId) {
+    this.activityId = activityId;
   }
 
   @Override
-  public boolean select(final ActivityCountKey key, final ObjectCacheInfo<? extends IntegerData> ocinfo) {
+  public boolean select(final ListActivitiesKey key, final ObjectCacheInfo<? extends ListActivitiesData> ocinfo) {
     if (!super.select(key, ocinfo)) {
       return false;
     }
 
-    if (key.getKey() != null && key.getKey().getId().equals(streamOwnerId) && (type.equals(key.getActivityType()))) {
-      return true;
-    }
-
-    return false;
+    return ActivityType.COMMENTS.equals(key.getKey().getActivityType())
+        && key.getKey().getActivityKey().getId().equals(this.activityId);
   }
 
 }

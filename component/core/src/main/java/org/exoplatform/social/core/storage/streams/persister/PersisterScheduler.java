@@ -42,7 +42,7 @@ public class PersisterScheduler implements PersistAlgorithm, Runnable {
   
   private Thread thread;
   
-  private CountDownLatch countDownLatch = new CountDownLatch(1);
+  private CountDownLatch countDownLatch = new CountDownLatch(0);
 
   /** */
   ScheduledExecutorService scheduledExecutor;
@@ -86,9 +86,6 @@ public class PersisterScheduler implements PersistAlgorithm, Runnable {
   
   public void run() {
     try {
-      if (countDownLatch.getCount() == 0) {
-        countDownLatch = new CountDownLatch(1);
-      }
       //
       persister.commit(true);
     } catch (Throwable t) {
@@ -130,6 +127,20 @@ public class PersisterScheduler implements PersistAlgorithm, Runnable {
   
   public CountDownLatch getSynchronizationLock() {
     return this.countDownLatch;
+  }
+  
+  public CountDownLatch newSynchronizationLock(int number) {
+    if (countDownLatch.getCount() == 0) {
+      countDownLatch = new CountDownLatch(number);
+    }
+    
+    return this.countDownLatch;
+  }
+  
+  public void countDown() {
+    if (countDownLatch.getCount() > 0) {
+      countDownLatch.countDown();
+    }
   }
   
   public void resetWakeupInterval(long intervalPersistThreshold) {

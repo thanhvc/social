@@ -350,9 +350,12 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
   private void recordActivity(SpaceLifeCycleEvent event, String activityMessage, String titleId,
                               Map<String, String> templateParams) {
     Space space = event.getSpace();
+    if (event.getTarget() == null) return;
+    //
     Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
     
     Identity identity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, event.getTarget(), false);
+    
     String activityId = getStorage().getProfileActivityId(spaceIdentity.getProfile(), Profile.AttachedActivityType.SPACE);
     if (activityId != null) {
       try {
@@ -374,7 +377,7 @@ public class SpaceActivityPublisher extends SpaceListenerPlugin {
     if (activityId == null) {
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setType(SPACE_PROFILE_ACTIVITY);
-      activity.setTitle(getActivityTitleBySpace(space.getPrettyName())); 
+      activity.setTitle(getActivityTitleBySpace(space.getPrettyName()));
       
       Map<String, String> tmplParams = new LinkedHashMap<String, String>();
       tmplParams.put(Space.CREATOR, event.getTarget());

@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.social.common.RealtimeListAccess;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
@@ -31,6 +33,7 @@ import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 import org.exoplatform.social.core.updater.UserActivityStreamUpdaterPlugin;
 
@@ -41,6 +44,8 @@ import org.exoplatform.social.core.updater.UserActivityStreamUpdaterPlugin;
  * Sep 13, 2013  
  */
 public class LazyActivityStorageTest extends AbstractCoreTest {
+  
+  private final Log LOG = ExoLogger.getLogger(LazyActivityStorageTest.class);
   
   private IdentityStorage identityStorage;
   private ActivityStorage activityStorage;
@@ -67,6 +72,7 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     streamStorage = (ActivityStreamStorage) getContainer().getComponentInstanceOfType(ActivityStreamStorage.class);
     
     activityStorage.setInjectStreams(false);
+    StreamContext.instanceInContainer().switchSchedulerOnOff(false);
     
     //
     assertNotNull("identityManager must not be null", identityStorage);
@@ -107,6 +113,7 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     identityStorage.deleteIdentity(jameIdentity);
     
     activityStorage.setInjectStreams(true);
+    StreamContext.instanceInContainer().switchSchedulerOnOff(true);
     super.tearDown();
   }
 
@@ -141,20 +148,20 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     RealtimeListAccess<ExoSocialActivity> listAccess = activityManager.getActivityFeedWithListAccess(rootIdentity);
     //PAGE 1
     List<ExoSocialActivity> page1 = Arrays.asList(listAccess.load(0, 20));
-    System.out.println("==========PAGE 1===========");
+    LOG.info("==========PAGE 1===========");
     printList(page1);
     got.addAll(page1);
     assertEquals(20, got.size());
     //PAGE 2
     List<ExoSocialActivity> page2 = Arrays.asList(listAccess.load(20, 20));
-    System.out.println("==========PAGE 2===========");
+    LOG.info("==========PAGE 2===========");
     printList(page2);
     got.addAll(page2);
     assertEquals(40, got.size());
     //PAGE 3
     
     List<ExoSocialActivity> page3 = Arrays.asList(listAccess.load(40, 20));
-    System.out.println("==========PAGE 3===========");
+    LOG.info("==========PAGE 3===========");
     printList(page3);
     assertEquals(14, page3.size());
     got.addAll(page3);
@@ -193,20 +200,20 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     RealtimeListAccess<ExoSocialActivity> listAccess = activityManager.getActivitiesWithListAccess(rootIdentity);
     //PAGE 1
     List<ExoSocialActivity> page1 = Arrays.asList(listAccess.load(0, 20));
-    System.out.println("==========PAGE 1===========");
+    LOG.info("==========PAGE 1===========");
     printList(page1);
     got.addAll(page1);
     assertEquals(20, got.size());
     //PAGE 2
     List<ExoSocialActivity> page2 = Arrays.asList(listAccess.load(20, 20));
-    System.out.println("==========PAGE 2===========");
+    LOG.info("==========PAGE 2===========");
     printList(page2);
     got.addAll(page2);
     assertEquals(40, got.size());
     //PAGE 3
     
     List<ExoSocialActivity> page3 = Arrays.asList(listAccess.load(40, 20));
-    System.out.println("==========PAGE 3===========");
+    LOG.info("==========PAGE 3===========");
     printList(page3);
     assertEquals(14, page3.size());
     got.addAll(page3);
@@ -246,7 +253,7 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     RealtimeListAccess<ExoSocialActivity> listAccess = activityManager.getActivityFeedWithListAccess(rootIdentity);
     //PAGE 1
     List<ExoSocialActivity> page1 = Arrays.asList(listAccess.load(0, 20));
-    System.out.println("==========PAGE 1===========");
+    LOG.info("==========PAGE 1===========");
     printList(page1);
     got.addAll(page1);
     assertEquals(20, got.size());
@@ -285,13 +292,13 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     RealtimeListAccess<ExoSocialActivity> listAccess = activityManager.getActivityFeedWithListAccess(rootIdentity);
     //PAGE 1
     List<ExoSocialActivity> page1 = Arrays.asList(listAccess.load(0, 20));
-    System.out.println("==========PAGE 1===========");
+    LOG.info("==========PAGE 1===========");
     printList(page1);
     got.addAll(page1);
     assertEquals(20, got.size());
     //PAGE 2
     List<ExoSocialActivity> page2 = Arrays.asList(listAccess.load(20, 20));
-    System.out.println("==========PAGE 2===========");
+    LOG.info("==========PAGE 2===========");
     printList(page2);
     assertEquals(14, page2.size());
     got.addAll(page2);
@@ -319,20 +326,20 @@ public class LazyActivityStorageTest extends AbstractCoreTest {
     RealtimeListAccess<ExoSocialActivity> listAccess = activityManager.getActivityFeedWithListAccess(rootIdentity);
     //PAGE 1
     List<ExoSocialActivity> page1 = Arrays.asList(listAccess.load(0, 20));
-    System.out.println("==========PAGE 1===========");
+    LOG.info("==========PAGE 1===========");
     printList(page1);
     got.addAll(page1);
     assertEquals(20, got.size());
     //PAGE 2
     List<ExoSocialActivity> page2 = Arrays.asList(listAccess.load(20, 20));
-    System.out.println("==========PAGE 2===========");
+    LOG.info("==========PAGE 2===========");
     printList(page2);
     got.addAll(page2);
     assertEquals(40, got.size());
     //PAGE 3
     
     List<ExoSocialActivity> page3 = Arrays.asList(listAccess.load(40, 20));
-    System.out.println("==========PAGE 3===========");
+    LOG.info("==========PAGE 3===========");
     printList(page3);
     assertEquals(14, page3.size());
     got.addAll(page3);

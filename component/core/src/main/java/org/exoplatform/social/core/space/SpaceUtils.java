@@ -901,7 +901,7 @@ public class SpaceUtils {
       if (MEMBER.equals(membership)) {
           Collection<Membership> memberships = memberShipHandler.findMembershipsByUserAndGroup(remoteId, groupId);
           if (memberships.size() == 0) {
-            LOG.info("User: " + remoteId + " is not a member of group: " + groupId);
+            LOG.debug("User: " + remoteId + " is not a member of group: " + groupId);
             return;
           }
           Iterator<Membership> itr = memberships.iterator();
@@ -912,7 +912,7 @@ public class SpaceUtils {
       } else if (getUserACL().getAdminMSType().equals(membership)) {
           Membership memberShip = memberShipHandler.findMembershipByUserGroupAndType(remoteId, groupId, getUserACL().getAdminMSType());
           if (memberShip == null) {
-            LOG.info("User: " + remoteId + " is not a manager of group: " + groupId);
+            LOG.debug("User: " + remoteId + " is not a manager of group: " + groupId);
             return;
           }
           UserHandler userHandler = organizationService.getUserHandler();

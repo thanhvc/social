@@ -589,4 +589,26 @@ public class StorageUtils {
        return null;
      }
    }
+   
+   /**
+    * Returns the stack trace
+    * @return
+    */
+   public static String printCurrentStackTrace() {
+     return printStackTrace(Thread.currentThread().getStackTrace());
+   }
+   
+   /**
+    * Dump the current thread stack trace
+    * @param elements
+    * @return
+    */
+   public static String printStackTrace(StackTraceElement...elements) {
+     StringBuffer buffer = new StringBuffer();
+     for(StackTraceElement element : elements) {
+       buffer.append(element.toString()).append("\n");
+     }
+     
+     return buffer.toString();
+   }
 }

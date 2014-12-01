@@ -125,7 +125,7 @@
     <init-params>
       <value-param>
         <name>exo.social.activity.interval.persist.threshold</name>
-        <value>1000</value>
+        <value>84000</value>
       </value-param>
       <value-param>
         <name>exo.social.activity.limit.persist.threshold</name>

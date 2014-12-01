@@ -129,6 +129,18 @@ public class ActivityCountKey extends ScopeCacheKey {
 
     return true;
   }
+  
+  @Override
+  public String toString() {
+    StringBuffer buffer = new StringBuffer();
+    if (this.key != null) {
+      buffer.append("identity:").append(this.key.getId());
+    }
+    if (this.type != null) {
+      buffer.append(",type:").append(this.type.toString());
+    }
+    return buffer.toString();
+  }
 
   @Override
   public int hashCode() {

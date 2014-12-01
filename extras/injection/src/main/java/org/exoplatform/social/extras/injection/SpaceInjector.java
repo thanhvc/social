@@ -2,7 +2,6 @@ package org.exoplatform.social.extras.injection;
 
 import java.util.HashMap;
 
-import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
@@ -82,6 +81,8 @@ public class SpaceInjector extends AbstractSocialInjector {
 
         }
       }
+    } catch (Exception ex) {
+      LOG.error(ex.getMessage());
     } finally {
       StorageUtils.persistJCR(false);
     }

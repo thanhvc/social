@@ -52,9 +52,8 @@ public class PersisterInvoker {
   public static <V, O> void persist(StreamKey key, List<DataChange<StreamChange<StreamKey, String>>> listChanges) {
     if (listChanges == null || listChanges.size() == 0) return;
     SocialServiceContext ctx = SocialServiceContextImpl.getInstance();
-    StreamProcessContext processCtx = StreamProcessContext.getIntance(StreamProcessContext.PERSIST_ACTIVITIES_STREAM_PROCESS,
-                                                                      SocialServiceContextImpl.getInstance());
-      ctx.getServiceExecutor().async(doPersist(key, listChanges), processCtx);
+    StreamProcessContext processCtx = StreamProcessContext.getIntance(StreamProcessContext.PERSIST_ACTIVITIES_STREAM_PROCESS, SocialServiceContextImpl.getInstance());
+    ctx.getServiceExecutor().async(doPersist(key, listChanges), processCtx);
   }
 
   private static <V, O> SocialChromatticAsyncProcessor doPersist(final StreamKey key,

@@ -34,7 +34,7 @@ import org.exoplatform.social.extras.injection.utils.NameGenerator;
 public abstract class AbstractSocialInjector extends DataInjector {
 
   /** . */
-  private static Log LOG = ExoLogger.getLogger(IdentityInjector.class);
+  protected static Log LOG = ExoLogger.getLogger(AbstractSocialInjector.class);
   
   /** . */
   private final static String DEFAULT_USER_BASE = "bench.user";

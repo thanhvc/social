@@ -110,7 +110,7 @@ public class WhatsHotTest extends AbstractCoreTest {
     }
 
     // remove 5 activities
-    List<ExoSocialActivity> result = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> result = activityStorage.getUserActivities(rootIdentity, 0, 20);
     Iterator<ExoSocialActivity> it = result.iterator();
 
     for (int i = 0; i < 5; ++i) {
@@ -131,7 +131,7 @@ public class WhatsHotTest extends AbstractCoreTest {
       tearDownActivityList.add(activity);
     }
 
-    List<ExoSocialActivity> activityies = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activityies = activityStorage.getUserActivities(rootIdentity, 0, 20);
     int i = 0;
     int[] values = {0, 1, 2, 3, 4, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
     for (ExoSocialActivity activity : activityies) {
@@ -187,7 +187,7 @@ public class WhatsHotTest extends AbstractCoreTest {
     }
 
     //5 activities
-    Iterator<ExoSocialActivity> it = activityStorage.getUserActivities(rootIdentity).iterator();
+    Iterator<ExoSocialActivity> it = activityStorage.getUserActivities(rootIdentity, 0, 20).iterator();
 
     // fill 10 others
     for (int i = 0; i < 10; ++i) {
@@ -204,13 +204,14 @@ public class WhatsHotTest extends AbstractCoreTest {
       tearDownActivityList.add(activity);
     }
 
-    List<ExoSocialActivity> activityies = activityStorage.getUserActivities(rootIdentity);
+    List<ExoSocialActivity> activityies = activityStorage.getUserActivities(rootIdentity, 0, 20);
     int i = 0;
     int[] values = {0, 1, 2, 3, 4, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
     for (ExoSocialActivity activity : activityies) {
       assertEquals("title " + values[i], activity.getTitle());
       ++i;
     }
+    
   }
   
   @MaxQueryNumber(500)

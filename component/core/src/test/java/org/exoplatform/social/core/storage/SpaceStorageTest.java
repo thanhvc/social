@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
-import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.model.AvatarAttachment;
 import org.exoplatform.social.core.service.LinkProvider;
@@ -32,6 +31,7 @@ import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 import org.exoplatform.social.core.test.MaxQueryNumber;
 import org.exoplatform.social.core.test.QueryNumberTest;
@@ -108,6 +108,7 @@ public class SpaceStorageTest extends AbstractCoreTest {
     tearDownIdentityList.add(newStranger);
 
     tearDownSpaceList = new ArrayList<Space>();
+    StreamContext.instanceInContainer().switchSchedulerOnOff(false);
   }
 
   /**
@@ -122,6 +123,7 @@ public class SpaceStorageTest extends AbstractCoreTest {
     for (Identity id : tearDownIdentityList) {
       identityStorage.deleteIdentity(id);
     }
+    StreamContext.instanceInContainer().switchSchedulerOnOff(true);
     super.tearDown();
   }
 

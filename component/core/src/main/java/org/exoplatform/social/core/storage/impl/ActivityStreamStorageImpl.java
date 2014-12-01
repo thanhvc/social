@@ -55,7 +55,9 @@ import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.RelationshipStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
+import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.storage.streams.StreamProcessContext;
 import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
 
@@ -241,7 +243,8 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
     try {
       //
       ActivityEntity activityEntity = _findById(ActivityEntity.class, activityId);
-      HidableEntity hidableActivity = _getMixin(activityEntity, HidableEntity.class, false);
+      boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, false);
+      
       
       Collection<ActivityRef> references = activityEntity.getActivityRefs();
       
@@ -254,7 +257,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       }
       
       for(ActivityRefListEntity list : refList) {
-        list.remove(activityEntity, hidableActivity.getHidden(), null);
+        list.remove(activityEntity, hideValue, null);
       }
       
       
@@ -531,14 +534,17 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
   public void connect(Identity sender, Identity receiver) {
     try {
       //
-      QueryResult<ActivityEntity> activities = getActivitiesOfConnections(sender);
+      QueryResult<ActivityEntity> senderActivities = getActivitiesOfConnections(sender);
+      QueryResult<ActivityEntity> receiverActivities = getActivitiesOfConnections(receiver);
       
+      LOG.debug("sender size:" + senderActivities.size());
+      LOG.debug("receiver's size:" + receiverActivities.size());
       
       IdentityEntity receiverEntity = identityStorage._findIdentityEntity(receiver.getProviderId(), receiver.getRemoteId());
       
-      if (activities != null) {
-        while(activities.hasNext()) {
-          ActivityEntity entity = activities.next();
+      if (senderActivities != null) {
+        while(senderActivities.hasNext()) {
+          ActivityEntity entity = senderActivities.next();
           
           //has on sender stream
           if (isExistingActivityRef(receiverEntity, entity, ActivityRefType.CONNECTION)) continue;
@@ -550,10 +556,10 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       
       //
       IdentityEntity senderEntity = identityStorage._findIdentityEntity(sender.getProviderId(), sender.getRemoteId());
-      activities = getActivitiesOfConnections(receiver);
-      if (activities != null) {
-        while(activities.hasNext()) {
-          ActivityEntity entity = activities.next();
+      
+      if (receiverActivities != null) {
+        while(receiverActivities.hasNext()) {
+          ActivityEntity entity = receiverActivities.next();
 
           //has on receiver stream
           if (isExistingActivityRef(senderEntity, entity, ActivityRefType.CONNECTION)) continue;
@@ -565,6 +571,8 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       
     } catch (NodeNotFoundException e) {
       LOG.warn("Failed to add Activity references when create relationship.");
+    } finally {
+      StorageUtils.persist();
     }
   }
   
@@ -838,7 +846,6 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
           List<ActivityRefDayEntity> days = month.getDaysList();
           for(ActivityRefDayEntity day : days) {
             size += day.getNumber().intValue();
-            
           }
         }
       }
@@ -969,7 +976,9 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
   
   private void createConnectionsRefs(Identity identity, ActivityEntity activityEntity) throws NodeNotFoundException {
     manageRefList(new UpdateContext(identity, null), activityEntity, ActivityRefType.FEED, true);
+    StreamContext.increaseCount(identity.getId(), ActivityType.FEED);
     manageRefList(new UpdateContext(identity, null), activityEntity, ActivityRefType.CONNECTION, false);
+    StreamContext.increaseCount(identity.getId(), ActivityType.CONNECTION);
   }
   
   private void removeRelationshipRefs(Identity identity, ActivityEntity activityEntity) throws NodeNotFoundException {

@@ -17,19 +17,22 @@
 
 package org.exoplatform.social.core.storage.cache;
 
-import org.apache.commons.lang.ArrayUtils;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
+import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
+import org.exoplatform.social.core.storage.impl.StorageUtils;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 import org.exoplatform.social.core.test.MaxQueryNumber;
 import org.exoplatform.social.core.test.QueryNumberTest;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
@@ -38,6 +41,7 @@ import java.util.List;
 @QueryNumberTest
 public class CachedActivityStorageTestCase extends AbstractCoreTest {
 
+  private ActivityManager activityManager;
   private CachedActivityStorage activityStorage;
   private CachedRelationshipStorage relationshipStorage;
   private IdentityStorageImpl identityStorage;
@@ -47,6 +51,7 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
   private Identity identity2;
 
   private List<String> tearDownIdentityList;
+  private List<ExoSocialActivity> tearDownActivityList;
 
   @Override
   protected void setUp() throws Exception {
@@ -54,6 +59,7 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     super.setUp();
 
     //
+    activityManager = CommonsUtils.getService(ActivityManager.class);
     activityStorage = (CachedActivityStorage) getContainer().getComponentInstanceOfType(CachedActivityStorage.class);
     relationshipStorage = (CachedRelationshipStorage) getContainer().getComponentInstanceOfType(CachedRelationshipStorage.class);
     identityStorage = (IdentityStorageImpl) getContainer().getComponentInstanceOfType(IdentityStorageImpl.class);
@@ -63,6 +69,7 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     cacheService.getActivitiesCache().clearCache();
     cacheService.getActivitiesCountCache().clearCache();
     cacheService.getActivityCache().clearCache();
+    cacheService.getStreamCache().clearCache();
 
     //
     identity = new Identity(OrganizationIdentityProvider.NAME, "mary");
@@ -74,15 +81,25 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     tearDownIdentityList = new ArrayList<String>();
     tearDownIdentityList.add(identity.getId());
     tearDownIdentityList.add(identity2.getId());
+    tearDownActivityList = new ArrayList<ExoSocialActivity>();
+    //turn OFF scheduler
+    StreamContext.instanceInContainer().switchSchedulerOnOff(false);
 
   }
 
   @Override
   protected void tearDown() throws Exception {
+    
+    
+    for (ExoSocialActivity activity : tearDownActivityList) {
+      activityStorage.deleteActivity(activity.getId());
+    }
 
     for (String id : tearDownIdentityList) {
       identityStorage.deleteIdentity(new Identity(id));
     }
+    
+    StreamContext.instanceInContainer().switchSchedulerOnOff(true);
     
     super.tearDown();
 
@@ -96,27 +113,29 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activity.setTitle("hello");
     activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
+    tearDownActivityList.add(activity);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     ExoSocialActivity activity2 = new ExoSocialActivityImpl();
     activity2.setTitle("hello 2");
     activity2.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity2);
-
+    tearDownActivityList.add(activity2);
+    
     //
     assertEquals(2, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
   }
 
@@ -128,25 +147,27 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activity.setTitle("hello");
     activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
+    
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     activityStorage.deleteActivity(activity.getId());
 
-    //
-    assertEquals(0, cacheService.getActivityCache().getCacheSize());
+    //updated the cached item with deleted status
+    assertEquals(1, cacheService.getActivityCache().getCacheSize());
     assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
-
+    
+    
 
   }
 
@@ -158,15 +179,17 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activity.setTitle("hello on 1");
     activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
+    tearDownActivityList.add(activity);
 
     ExoSocialActivity activity2 = new ExoSocialActivityImpl();
     activity2.setTitle("hello on 2");
     activity2.setUserId(identity2.getId());
     activityStorage.saveActivity(identity2, activity2);
+    tearDownActivityList.add(activity2);
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(6, cacheService.getStreamCache().getCacheSize());
 
     Relationship relationship = new Relationship(identity, identity2, Relationship.Type.CONFIRMED);
     relationshipStorage.saveRelationship(relationship);
@@ -174,11 +197,11 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(6, cacheService.getStreamCache().getCacheSize());
 
     //
     relationshipStorage.removeRelationship(relationship);
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(6, cacheService.getStreamCache().getCacheSize());
 
   }
 
@@ -190,17 +213,18 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activity.setTitle("hello");
     activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
+    tearDownActivityList.add(activity);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     ExoSocialActivity comment = new ExoSocialActivityImpl();
     comment.setTitle("comment");
@@ -209,7 +233,7 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
 
     //
     assertEquals(2, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
     assertEquals(activity.getId(), activityStorage.getActivityFeed(identity, 0, 20).get(0).getId());
     assertEquals(comment.getId(), activityStorage.getActivityFeed(identity, 0, 20).get(0).getReplyToId()[0]);
 
@@ -222,17 +246,18 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activity.setTitle("hello");
     activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
+    tearDownActivityList.add(activity);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     ExoSocialActivity comment = new ExoSocialActivityImpl();
     comment.setTitle("comment");
@@ -241,7 +266,7 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
 
     //
     assertEquals(2, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
     assertEquals(activity.getId(), activityStorage.getActivityFeed(identity, 0, 20).get(0).getId());
     assertEquals(comment.getId(), activityStorage.getActivityFeed(identity, 0, 20).get(0).getReplyToId()[0]);
 
@@ -249,8 +274,8 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activityStorage.deleteComment(activity.getId(), comment.getId());
 
     //
-    assertEquals(0, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(1, cacheService.getActivityCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
     assertEquals(activity.getId(), activityStorage.getActivityFeed(identity, 0, 20).get(0).getId());
     assertEquals(0, activityStorage.getActivityFeed(identity, 0, 20).get(0).getReplyToId().length);
 
@@ -262,17 +287,19 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     activity.setTitle("hello");
     activity.setUserId(identity.getId());
     activityStorage.saveActivity(identity, activity);
+    tearDownActivityList.add(activity);
     
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    //FEED, USER, AND VIEWER caching for identity
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
 
     //
     activityStorage.getActivityFeed(identity, 0, 20);
 
     //
     assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(3, cacheService.getStreamCache().getCacheSize());
     
     //
     List<ExoSocialActivity> idActivities = activityStorage.getUserActivities(identity, 0, 5);
@@ -283,22 +310,13 @@ public class CachedActivityStorageTestCase extends AbstractCoreTest {
     
     // identity2 like activity of identity1
     ExoSocialActivity gotActivity = activityStorage.getUserActivities(identity, 0, 5).get(0);
-    String[] likeIdentityIds = gotActivity.getLikeIdentityIds();
-    likeIdentityIds = (String[]) ArrayUtils.add(likeIdentityIds, identity2.getId());
-    gotActivity.setLikeIdentityIds(likeIdentityIds);
-    activityStorage.updateActivity(gotActivity);
+    activityManager.saveLike(gotActivity, identity2);
     
-    assertEquals(0, cacheService.getActivityCache().getCacheSize());
-    assertEquals(0, cacheService.getActivitiesCache().getCacheSize());
+    assertEquals(1, cacheService.getActivityCache().getCacheSize());
+    assertEquals(5, cacheService.getStreamCache().getCacheSize());
     
     id2Activities = activityStorage.getUserActivities(identity2, 0, 5);
     assertEquals(1, id2Activities.size());
-    
-    assertEquals(1, cacheService.getActivityCache().getCacheSize());
-    assertEquals(1, cacheService.getActivitiesCache().getCacheSize());
-    
-    //
-    activityStorage.deleteActivity(activity.getId());
   }
 
 }

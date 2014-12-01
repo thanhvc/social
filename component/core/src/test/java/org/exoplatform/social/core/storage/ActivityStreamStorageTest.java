@@ -35,9 +35,9 @@ import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
-import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.api.ActivityStreamStorage;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
 import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
 import org.exoplatform.social.core.test.AbstractCoreTest;
 
@@ -45,7 +45,7 @@ import org.exoplatform.social.core.test.AbstractCoreTest;
 public class ActivityStreamStorageTest extends AbstractCoreTest {
   private final Log LOG = ExoLogger.getLogger(ActivityStreamStorageTest.class);
   private IdentityStorage identityStorage;
-  private ActivityStorage activityStorage;
+  private ActivityStorageImpl activityStorage;
   private ActivityStreamStorage streamStorage;
   private RelationshipManagerImpl relationshipManager;
   private List<ExoSocialActivity> tearDownActivityList;
@@ -61,7 +61,8 @@ public class ActivityStreamStorageTest extends AbstractCoreTest {
   protected void setUp() throws Exception {
     super.setUp();
     identityStorage = (IdentityStorage) getContainer().getComponentInstanceOfType(IdentityStorage.class);
-    activityStorage = (ActivityStorage) getContainer().getComponentInstanceOfType(ActivityStorage.class);
+    activityStorage = (ActivityStorageImpl) getContainer().getComponentInstanceOfType(ActivityStorageImpl.class);
+    activityStorage.setInjectStreams(true);
     streamStorage = (ActivityStreamStorage) getContainer().getComponentInstanceOfType(ActivityStreamStorage.class);
     relationshipManager = (RelationshipManagerImpl) getContainer().getComponentInstanceOfType(RelationshipManager.class);
     
@@ -218,6 +219,7 @@ public class ActivityStreamStorageTest extends AbstractCoreTest {
 
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle(activityTitle + " @demo ");
+    activity.setUserId(rootIdentity.getId());
     activityStorage.saveActivity(rootIdentity, activity);
     tearDownActivityList.add(activity);
     
@@ -225,19 +227,17 @@ public class ActivityStreamStorageTest extends AbstractCoreTest {
     assertEquals(1, streamStorage.getNumberOfFeed(demoIdentity));
     
     assertEquals(0, streamStorage.getNumberOfFeed(maryIdentity));
+    assertEquals(0, streamStorage.getNumberOfFeed(johnIdentity));
     assertEquals(0, streamStorage.getNumberOfMyActivities(maryIdentity));
     
     ExoSocialActivity comment = new ExoSocialActivityImpl();
-    comment.setTitle(activityTitle  + " @mary @john @demo");
+    comment.setTitle(activityTitle  + " @mary @demo");
     comment.isComment(true);
     comment.setUserId(maryIdentity.getId());
     activityStorage.saveComment(activity, comment);
     
     assertEquals(1, streamStorage.getNumberOfFeed(maryIdentity));
     assertEquals(1, streamStorage.getNumberOfMyActivities(maryIdentity));
-    
-    assertEquals(1, streamStorage.getNumberOfFeed(johnIdentity));
-    assertEquals(1, streamStorage.getNumberOfMyActivities(johnIdentity));
     
     assertEquals(1, streamStorage.getNumberOfFeed(demoIdentity));
     assertEquals(1, streamStorage.getNumberOfMyActivities(demoIdentity));

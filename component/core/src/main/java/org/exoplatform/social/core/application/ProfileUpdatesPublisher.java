@@ -113,6 +113,7 @@ public class ProfileUpdatesPublisher extends ProfileListenerPlugin {
     if (activity == null) {
       activity = new ExoSocialActivityImpl();
       activity.setType(PeopleService.USER_PROFILE_ACTIVITY);
+      activity.setUserId(event.getProfile().getIdentity().getId());
       activityId = null;
     }
     activity.setTitle(activityMessage);

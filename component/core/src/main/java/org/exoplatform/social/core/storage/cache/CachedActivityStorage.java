@@ -22,13 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.Validate;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.social.common.service.utils.LogWatch;
 import org.exoplatform.social.core.ActivityProcessor;
 import org.exoplatform.social.core.activity.filter.ActivityFilter;
 import org.exoplatform.social.core.activity.filter.ActivityUpdateFilter;
@@ -50,27 +48,19 @@ import org.exoplatform.social.core.storage.cache.model.key.ListActivitiesKey;
 import org.exoplatform.social.core.storage.cache.model.key.StreamKey;
 import org.exoplatform.social.core.storage.cache.selector.ActivityOwnerCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ActivityStreamOwnerCacheSelector;
+import org.exoplatform.social.core.storage.cache.selector.CommentsCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.NewerOlderStreamCountCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ScopeCacheSelector;
 import org.exoplatform.social.core.storage.impl.ActivityBuilderWhere;
 import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
-import org.exoplatform.social.core.storage.streams.StreamContext;
 import org.exoplatform.social.core.storage.streams.StreamHelper;
-import org.exoplatform.social.core.storage.streams.event.DataChange;
-import org.exoplatform.social.core.storage.streams.event.DataChangeMerger;
-import org.exoplatform.social.core.storage.streams.event.DataChangeQueue;
-import org.exoplatform.social.core.storage.streams.event.DataContext;
-import org.exoplatform.social.core.storage.streams.event.StreamChange;
-import org.exoplatform.social.core.storage.streams.persister.Persister;
-import org.exoplatform.social.core.storage.streams.persister.PersisterInvoker;
-import org.exoplatform.social.core.storage.streams.persister.PersisterScheduler;
 
 /**
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
  * @version $Revision$
  */
-public class CachedActivityStorage implements ActivityStorage, Persister {
+public class CachedActivityStorage implements ActivityStorage {
 
   /** Logger */
   private static final Log LOG = ExoLogger.getLogger(CachedActivityStorage.class);
@@ -87,16 +77,22 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
 
   private final ActivityStorageImpl storage;
   
-  /** */
-  private final PersisterScheduler persisterScheduler;
-  /** */
-  final LogWatch logWatch;
-
   public void clearCache() {
 
     try {
       exoActivitiesCache.select(new ScopeCacheSelector<ListActivitiesKey, ListActivitiesData>());
       exoActivitiesCountCache.select(new NewerOlderStreamCountCacheSelector());
+    }
+    catch (Exception e) {
+      LOG.error(e);
+    }
+
+  }
+  
+  public void clearCommentsCache(String activityId) {
+
+    try {
+      exoActivitiesCache.select(new CommentsCacheSelector(activityId));
     }
     catch (Exception e) {
       LOG.error(e);
@@ -216,14 +212,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     this.activitiesCache = CacheType.ACTIVITIES.createFutureCache(exoActivitiesCache);
     this.streamCache = CacheType.STREAM.createFutureStreamCache(exoStreamCache);
     
-    this.persisterScheduler = PersisterScheduler.init()
-                                                .persister(this)
-                                                .wakeup(StreamContext.instanceInContainer().getIntervalPersistThreshold())
-                                                .timeUnit(TimeUnit.MILLISECONDS)
-                                                .build();
-    this.persisterScheduler.start();
-    logWatch = new LogWatch("Persister action ");
-
   }
   
   /**
@@ -308,7 +296,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     List<String> addedMentioners = StorageUtils.sub(newMentioners, oldMentioners);
     StreamHelper.MOVE.addComment(comment.getUserId(), activity);
     StreamHelper.MOVE.addOrMoveMentioners(addedMentioners, activity);
-    this.commit(false);
     //
     exoActivityCache.put(new ActivityKey(comment.getId()), new ActivityData(getActivity(comment.getId())));
     ActivityKey activityKey = new ActivityKey(activity.getId());
@@ -334,7 +321,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     
     if (isNew && !activity.isHidden()) {
       StreamHelper.ADD.addActivity(activity);
-      this.commit(false);
     }
     //
     ActivityKey key = new ActivityKey(a.getId());
@@ -365,7 +351,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     } else {
       ExoSocialActivity activity = storage.getActivity(activityId);
       StreamHelper.REMOVE.removeActivity(activity);
-      this.commit(false);
       exoActivityCache.remove(key);
       exoActivityCache.put(key, ActivityData.REMOVED);
       clearCache();
@@ -381,10 +366,9 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     List<String> oldMentioners = StorageUtils.getIdentityIds(old.getMentionedIds());
     //
     storage.deleteComment(activityId, commentId);
-    ActivityKey activityKey = new ActivityKey(activityId);
-    exoActivityCache.remove(activityKey);
+    clearActivityCached(activityId);
     ExoSocialActivity comment = getActivity(commentId);
-    exoActivityCache.remove(new ActivityKey(commentId));
+    clearActivityCached(commentId);
     //
     //re-loading the activity with refresh mentioners list
     ExoSocialActivity newActivity = getActivity(activityId);
@@ -403,8 +387,7 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     }
     
     StreamHelper.REMOVE.removeMentioners(removedList, newActivity);
-    this.commit(false);
-    clearActivityCached(activityId);
+    clearCommentsCache(activityId);
     updateCommentCountCaching(activityId, false);
   }
 
@@ -889,24 +872,21 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
    * {@inheritDoc}
    */
   public List<ExoSocialActivity> getUserSpacesActivities(final Identity ownerIdentity, final int offset, final int limit) {
+    
+    final StreamKey key = StreamKey.init(ownerIdentity.getId()).key(ActivityType.SPACES);
 
     //
-    ActivityCountKey key = new ActivityCountKey(new IdentityKey(ownerIdentity), ActivityType.SPACES);
-    ListActivitiesKey listKey = new ListActivitiesKey(key, offset, limit);
-
-    //
-    ListActivitiesData keys = activitiesCache.get(
-        new ServiceContext<ListActivitiesData>() {
-          public ListActivitiesData execute() {
+    ListActivityStreamData keys = streamCache.get(
+        new ServiceContext<ListActivityStreamData>() {
+          public ListActivityStreamData execute() {
             List<ExoSocialActivity> got = storage.getUserSpacesActivities(ownerIdentity, offset, limit);
-            return buildIds(got);
+            return buildStreamDataIds(key, got);
           }
         },
-        listKey);
+        key, offset, limit);
 
     //
-    return buildActivities(keys);
-
+    return buildActivitiesFromStream(keys, offset, limit);
   }
 
   /**
@@ -1105,7 +1085,9 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     //
     ActivityKey key = new ActivityKey(existingActivity.getId());
     ActivityData oldData = exoActivityCache.get(key);
-    ExoSocialActivity oldA = oldData.build();
+    //
+    ExoSocialActivity oldA = oldData != null ? oldData.build() : getActivity(existingActivity.getId());
+    //
     boolean isChangeHiddenToDisplay = oldA.isHidden() != existingActivity.isHidden() && !existingActivity.isHidden();
     if (isChangeHiddenToDisplay) {
       existingActivity.setPostedTime(System.currentTimeMillis());
@@ -1121,7 +1103,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
     if (isChangeHiddenToDisplay) {
       StreamHelper.ADD.addActivity(existingActivity);
       StreamHelper.ADD.addMentioners(existingActivity);
-      this.commit(false);
     }
 
     //
@@ -1982,40 +1963,6 @@ public class CachedActivityStorage implements ActivityStorage, Persister {
   public void setInjectStreams(boolean mustInject) {
     storage.setInjectStreams(mustInject);
     
-  }
-
-  @Override
-  public void commit(boolean forceCommit) {
-    persistFixedSize(forceCommit);
-  }
-  
-  private void persistFixedSize(boolean forcePersist) {
-    DataContext<StreamChange<StreamKey, String>> context = DataChangeMerger.getDataContext();
-    if (persisterScheduler.shoudldPersist(context.getChangesSize()) || forcePersist) {
-      DataChangeQueue<StreamChange<StreamKey, String>> changes = context.popChanges();
-      if (changes != null && changes.size() > 0) {
-        try {
-          logWatch.start();
-          Map<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>> map = DataChangeMerger.transformToMap(changes);
-          //
-          for (Map.Entry<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>> e : map.entrySet()) {
-            PersisterInvoker.persist(e.getKey(), e.getValue());
-          }
-        } finally {
-          logWatch.stop();
-          LOG.info(changes.size() + " streams affected, consumed time: " + logWatch.getElapsedTime() + "ms");
-        }
-                
-      }
-    }
-  }
-  
-  /**
-   * Gets the scheduler
-   * @return
-   */
-  public PersisterScheduler getScheduler() {
-    return this.persisterScheduler;
   }
   
 }

@@ -437,7 +437,8 @@ public class SpaceServiceImpl implements SpaceService {
       
       
     } catch (Exception e) {
-      LOG.warn("Failed to init apps", e);
+      LOG.warn("Failed to init apps");
+      LOG.debug("Failed to init apps", e);
     }
     
     saveSpace(space, true);
@@ -510,7 +511,7 @@ public class SpaceServiceImpl implements SpaceService {
           SpaceUtils.removeGroup(space);
         }
       } else {
-        LOG.warn("deletedGroup is null");
+        LOG.debug("deletedGroup is null");
       }
       
       //remove pages and group navigation of space

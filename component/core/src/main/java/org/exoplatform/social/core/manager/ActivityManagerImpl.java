@@ -104,6 +104,7 @@ public class ActivityManagerImpl implements ActivityManager {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setType(activityType);
     activity.setTitle(activityTitle);
+    activity.setUserId(streamOwner.getId());
     saveActivity(streamOwner, activity);
   }
 
@@ -191,6 +192,7 @@ public class ActivityManagerImpl implements ActivityManager {
     identityIds = (String[]) ArrayUtils.add(identityIds, identity.getId());
     existingActivity.setLikeIdentityIds(identityIds);
     updateActivity(existingActivity);
+    StreamHelper.MOVE.addLike(identity.getId(), existingActivity);
     //
     activityLifeCycle.likeActivity(existingActivity);
   }

@@ -203,7 +203,7 @@ public class ActivityMentionPluginTest extends AbstractPluginTest {
     notificationService.clearAll();
     
     //demo delete his comment
-    activityManager.deleteActivity(demoComment);
+    activityManager.deleteComment(maryActivity, demoComment);
     
     NotificationContext ctx = NotificationContextImpl.cloneInstance();
     toJohn.set(0, toJohn.get(0).setTo(johnIdentity.getRemoteId()));
