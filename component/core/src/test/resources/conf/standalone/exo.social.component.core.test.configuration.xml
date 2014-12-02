@@ -129,7 +129,7 @@
       </value-param>
       <value-param>
         <name>exo.social.activity.limit.persist.threshold</name>
-        <value>${exo.social.activity.limit.persist.threshold:1}</value>
+        <value>${exo.social.activity.limit.persist.threshold:2}</value>
       </value-param>
       <value-param>
         <name>connections-threshold-param</name>
@@ -137,7 +137,7 @@
       </value-param>
       <value-param>
         <name>last-login-around-days</name>
-        <value>15</value> <!-- the last login around days of an user -->
+        <value>${exo.social.last.login.around.days:15}</value> <!-- the last login around days of an user -->
       </value-param>
       <value-param>
         <name>limit-per-loading-param</name>
