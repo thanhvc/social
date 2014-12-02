@@ -20,10 +20,14 @@ package org.exoplatform.social.core.storage.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
@@ -33,7 +37,6 @@ import javax.jcr.nodetype.NodeTypeManager;
 import javax.jcr.nodetype.PropertyDefinition;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.lucene.queryParser.QueryParser;
 import org.chromattic.api.UndeclaredRepositoryException;
 import org.chromattic.api.query.Ordering;
 import org.chromattic.api.query.QueryBuilder;
@@ -41,10 +44,12 @@ import org.chromattic.api.query.QueryResult;
 import org.chromattic.core.query.QueryImpl;
 import org.chromattic.ext.ntdef.NTFile;
 import org.chromattic.ext.ntdef.Resource;
+import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
+import org.exoplatform.services.organization.User;
 import org.exoplatform.social.core.chromattic.entity.ActivityProfileEntity;
 import org.exoplatform.social.core.chromattic.entity.IdentityEntity;
 import org.exoplatform.social.core.chromattic.entity.ProfileEntity;
@@ -55,6 +60,7 @@ import org.exoplatform.social.core.chromattic.entity.RelationshipListEntity;
 import org.exoplatform.social.core.chromattic.entity.SpaceRef;
 import org.exoplatform.social.core.identity.IdentityResult;
 import org.exoplatform.social.core.identity.SpaceMemberFilterListAccess.Type;
+import org.exoplatform.social.core.identity.model.ActiveIdentityFilter;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.model.Profile.AttachedActivityType;
@@ -71,9 +77,11 @@ import org.exoplatform.social.core.storage.api.RelationshipStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
 import org.exoplatform.social.core.storage.exception.NodeAlreadyExistsException;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
+import org.exoplatform.social.core.storage.query.ChromatticNameEncode;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 import org.exoplatform.social.core.storage.query.QueryFunction;
 import org.exoplatform.social.core.storage.query.WhereExpression;
+import org.exoplatform.social.core.storage.streams.StreamContext;
 
 /**
  * IdentityStorage implementation.
@@ -382,10 +390,6 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
 
     //
     getSession().remove(identityEntity);
-
-    //
-    getSession().save();
-
     //
     LOG.debug(String.format(
         "Identity %s:%s (%s) deleted",
@@ -1465,6 +1469,78 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
        return false;
     }
     return true;
+  }
+  
+  @Override
+  public Set<String> getActiveUsers(ActiveIdentityFilter filter) {
+    Set<String> activeUsers = new HashSet<String>();
+    //by userGroups
+    if (filter.getUserGroups() != null) {
+      StringTokenizer stringToken = new StringTokenizer(filter.getUserGroups(), ActiveIdentityFilter.COMMA_SEPARATOR);
+      try {
+        while(stringToken.hasMoreTokens()) {
+          ListAccess<User> listAccess = getOrganizationService().getUserHandler().findUsersByGroupId(stringToken.nextToken().trim());
+          User[] users = listAccess.load(0, listAccess.getSize());
+          //
+          for(User u : users) {
+            activeUsers.add(u.getUserName());
+          }
+        }
+      } catch (Exception e) {
+        LOG.error(e.getMessage());
+      }
+    }
+    
+    //by N days
+    if (filter.getDays() > 0) {
+      Set<String> lastLoginUsers = StorageUtils.getLastLogin(filter.getDays());
+      if (lastLoginUsers != null) {
+        activeUsers.addAll(StorageUtils.getLastLogin(filter.getDays()));
+      }
+    } 
+
+    return activeUsers;
+  }
+  
+  @Override
+  public List<Identity> getActiveConnections(Identity identity) {
+    //
+    StreamContext streamContext = StreamContext.instanceInContainer();
+    //get multiple user groups separates by comma. Using StringTokenizer to split
+    String userGroups = streamContext.getActiveUserGroups();
+    int days = streamContext.getLastLoginAroundDays();
+    ActiveIdentityFilter filer = new ActiveIdentityFilter(days, userGroups);
+    Set<String> activeUsers = getActiveUsers(filer);
+    try {
+      IdentityEntity ownerEntity = _findById(IdentityEntity.class, identity.getId());
+      String nodePath = ownerEntity.getPath();
+      StringBuilder relationshipPath = new StringBuilder();
+      
+      List<Identity> result = new ArrayList<Identity>();
+      
+      for(String userName : activeUsers) {
+        //userName is the same owner, ignore.
+        if (identity.getRemoteId().equals(userName)) continue;
+        //reset StringBuilder with delete(0, length)
+        relationshipPath.delete(0, relationshipPath.length());
+        //
+        relationshipPath.append(nodePath).append("/").append(JCRProperties.RELATIONSHIP_NODE_TYPE).append("/").append("soc:").append(ChromatticNameEncode.encodeNodeName(userName));
+        
+        Identity identity2 = identityStorage.findIdentity(OrganizationIdentityProvider.NAME, userName);
+        
+        boolean hasRelationship = getRelationshipStorage().hasRelationship(identity, identity2, relationshipPath.toString());
+        
+        if(hasRelationship) {
+          result.add(identity2);
+        }
+      }
+      return result;
+    } catch (Exception e) {
+      return Collections.emptyList();
+    }
+    
+    
+    
   }
 
 }

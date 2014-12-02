@@ -66,19 +66,18 @@ public class ActivityPersister implements Persister {
       DataChangeQueue<StreamChange<StreamKey, String>> changes = context.popChanges();
       if (changes != null && changes.size() > 0) {
         try {
-          
           logWatch.start();
           Map<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>> map = DataChangeMerger.transformToMap(changes);
           persisterScheduler.newSynchronizationLock(1);
           //
           for (Map.Entry<StreamKey, List<DataChange<StreamChange<StreamKey, String>>>> e : map.entrySet()) {
             PersisterInvoker.persist(e.getKey(), e.getValue());
-            StorageUtils.persist();
           }
         } finally {
+          StorageUtils.persist();
           persisterScheduler.countDown();
           logWatch.stop();
-          LOG.debug(changes.size() + " streams affected, consumed time: " + logWatch.getElapsedTime() + "ms");
+          LOG.info(changes.size() + " streams affected, consumed time: " + logWatch.getElapsedTime() + "ms");
         }
       }
     }

@@ -89,6 +89,21 @@ public class StreamHelper {
   }
   
   /**
+   * Gets the connections who has relationship with the given identity.
+   * 1. If the number of connections > connectionThreshold, then getActiveConnections(identity) will be invoked.
+   * 2. If the number of connections < connectionThreshold, then getConnections(identity) will be invoked.
+   * @param identity the given identity
+   * @return
+   */
+  private static List<Identity> getConnections(Identity identity) {
+    int numberOfConnections = getRelationshipStorage().getConnectionsCount(identity);
+    int connectionThreshold = StreamContext.instanceInContainer().getConnectionsThreshold();
+    return numberOfConnections > connectionThreshold ? getIdentityStorage().getActiveConnections(identity)
+                                                    : getRelationshipStorage().getConnections(identity);
+    
+  }
+  
+  /**
    * Using when post new activity
    *
    */
@@ -172,7 +187,7 @@ public class StreamHelper {
      */
     private static void putConnections(String identityId, ExoSocialActivity activity) {
       Identity identity = getIdentityStorage().findIdentityById(identityId);
-      List<Identity> connections = getRelationshipStorage().getConnections(identity);
+      List<Identity> connections = getConnections(identity);
 
       if (connections == null)
         return;
@@ -211,8 +226,6 @@ public class StreamHelper {
       
     }
     
-   
-    
     /**
      * Puts the activity into the stream
      * 
@@ -233,8 +246,6 @@ public class StreamHelper {
       LOG.debug("moveToTop:: identity : " + posterId + " activity: " + activity.getTitle() + " stream: " + type.toString());
       data.putAtTop(activity.getId(), posterId);
     }
-    
-    
   }
   
   public static class MOVE {
@@ -314,7 +325,6 @@ public class StreamHelper {
           moveTopStream(key.getId(), activity, ActivityType.SPACES);
         }
       }
-      
     }
     
     /**
@@ -362,7 +372,7 @@ public class StreamHelper {
      */
     private static void moveConnection(String identityId, ExoSocialActivity activity) {
       Identity got = getIdentityStorage().findIdentityById(identityId);
-      List<Identity> connections = getRelationshipStorage().getConnections(got);
+      List<Identity> connections = getConnections(got);
       
       if (connections == null) return;
       
@@ -543,7 +553,7 @@ public class StreamHelper {
      */
     private static void removeConnection(String posterId, ExoSocialActivity activity) {
       Identity got = getIdentityStorage().findIdentityById(posterId);
-      List<Identity> connections = getRelationshipStorage().getConnections(got);
+      List<Identity> connections = getConnections(got);
       
       if (connections == null) return;
       
@@ -552,6 +562,8 @@ public class StreamHelper {
         removeFromStream(identity.getId(), activity, ActivityType.CONNECTION);
       }
     }
+    
+    
     
     /**
      * Puts the activity into the stream
@@ -570,10 +582,6 @@ public class StreamHelper {
       
       data.remove(activity.getId(), identityId);
     }
-    
-   
-    
-    
   }
   
   public static class CACHED {

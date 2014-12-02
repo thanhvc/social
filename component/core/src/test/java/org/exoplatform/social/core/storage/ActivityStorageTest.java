@@ -562,11 +562,11 @@ public class ActivityStorageTest extends AbstractCoreTest {
   public void testGetNumberOfOlderOnActivityFeed() throws Exception {
     createActivities(3, demoIdentity);
     createActivities(2, maryIdentity);
-    Relationship maryDemoConnection = relationshipManager.invite(maryIdentity, demoIdentity);
+    Relationship maryDemoConnection = relationshipManager.invite(demoIdentity, maryIdentity);
     relationshipManager.confirm(maryDemoConnection);
-    
+    //waiting to create the activity ref
     List<ExoSocialActivity> demoActivityFeed = activityStorage.getActivityFeed(demoIdentity, 0, 10);
-    ExoSocialActivity lastDemoActivity = demoActivityFeed.get(4);
+    ExoSocialActivity lastDemoActivity = demoActivityFeed.get(demoActivityFeed.size() -1);
     int oldDemoActivityFeed = activityStorage.getNumberOfOlderOnActivityFeed(demoIdentity, lastDemoActivity);
     assertEquals("oldDemoActivityFeed must be 0", 0, oldDemoActivityFeed);
     createActivities(1, johnIdentity);
@@ -1899,7 +1899,7 @@ public class ActivityStorageTest extends AbstractCoreTest {
 
     assertNotNull(activityStream.getPermaLink());
 
-    List<ExoSocialActivity> activities = activityStorage.getUserActivities(demoIdentity, 0, 100);
+    List<ExoSocialActivity> activities = activityStorage.getUserActivities(demoIdentity, 0, 10);
     assertEquals(1, activities.size());
     assertEquals(demoIdentity.getRemoteId(), activities.get(0).getStreamOwner());
     assertEquals(streamId, activities.get(0).getStreamId());
@@ -2098,7 +2098,7 @@ public class ActivityStorageTest extends AbstractCoreTest {
   /**
    * Tests {@link ActivityStorage#getNewerOnActivityFeed(Identity, Long, int)}.
    */
-  @MaxQueryNumber(1322)
+  @MaxQueryNumber(1330)
   public void testGetNewerOnActivityFeedWithTimestamp() throws Exception {
     checkCleanData();
     createActivities(3, demoIdentity);

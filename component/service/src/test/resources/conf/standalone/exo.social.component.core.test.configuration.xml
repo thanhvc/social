@@ -115,12 +115,31 @@
     <init-params>
       <value-param>
         <name>exo.social.activity.interval.persist.threshold</name>
-        <value>84000</value>
+        <value>${exo.social.activity.interval.persist.threshold:84000}</value>
       </value-param>
       <value-param>
         <name>exo.social.activity.limit.persist.threshold</name>
-        <value>1</value>
+        <value>${exo.social.activity.limit.persist.threshold:1}</value>
       </value-param>
+      <value-param>
+        <name>connections-threshold-param</name>
+        <value>${exo.social.connections.threshold:1000}</value> <!-- connections threshold -->
+      </value-param>
+      <value-param>
+        <name>last-login-around-days</name>
+        <value>15</value> <!-- the last login around days of an user -->
+      </value-param>
+      <value-param>
+        <name>limit-per-loading-param</name>
+        <value>${exo.social.connections.loading.limit.threshold:10}</value><!-- batch limit to persist to storage when CRUD node -->
+      </value-param>
+      <!-- /platform/administrators,/platform/users -->
+      <!--
+      <value-param>
+        <name>active-user-groups-param</name>
+        <value>/platform/administrators</value>
+      </value-param>
+      -->
     </init-params>
   </component>
   

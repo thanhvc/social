@@ -21,6 +21,7 @@ import org.exoplatform.services.cache.CacheService;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.social.core.storage.cache.model.data.ActiveIdentitiesData;
 import org.exoplatform.social.core.storage.cache.model.data.ActivityData;
 import org.exoplatform.social.core.storage.cache.model.data.IdentityData;
 import org.exoplatform.social.core.storage.cache.model.data.IntegerData;
@@ -33,6 +34,7 @@ import org.exoplatform.social.core.storage.cache.model.data.RelationshipData;
 import org.exoplatform.social.core.storage.cache.model.data.SpaceData;
 import org.exoplatform.social.core.storage.cache.model.data.SpaceSimpleData;
 import org.exoplatform.social.core.storage.cache.model.data.SuggestionsData;
+import org.exoplatform.social.core.storage.cache.model.key.ActiveIdentityKey;
 import org.exoplatform.social.core.storage.cache.model.key.ActivityCountKey;
 import org.exoplatform.social.core.storage.cache.model.key.ActivityKey;
 import org.exoplatform.social.core.storage.cache.model.key.IdentityCompositeKey;
@@ -66,6 +68,7 @@ public class SocialStorageCacheService {
   private final ExoCache<IdentityKey, ProfileData> profileCache;
   private final ExoCache<IdentityFilterKey, IntegerData> countIdentitiesCache;
   private final ExoCache<ListIdentitiesKey, ListIdentitiesData> identitiesCache;
+  private final ExoCache<ActiveIdentityKey, ActiveIdentitiesData> activeIdentitiesCache;
 
   // RelationshipStorage
   private final ExoCache<RelationshipKey, RelationshipData> relationshipCache;
@@ -97,6 +100,7 @@ public class SocialStorageCacheService {
     this.profileCache = CacheType.PROFILE.getFromService(cacheService);
     this.countIdentitiesCache = CacheType.IDENTITIES_COUNT.getFromService(cacheService);
     this.identitiesCache = CacheType.IDENTITIES.getFromService(cacheService);
+    this.activeIdentitiesCache = CacheType.ACTIVE_IDENTITIES.getFromService(cacheService);
 
     this.relationshipCache = CacheType.RELATIONSHIP.getFromService(cacheService);
     this.relationshipCacheByIdentity = CacheType.RELATIONSHIP_FROM_IDENTITY.getFromService(cacheService);
@@ -195,5 +199,9 @@ public class SocialStorageCacheService {
 
   public ExoCache<ListSpacesKey, ListSpacesData> getSpacesCache() {
     return spacesCache;
+  }
+  
+  public ExoCache<ActiveIdentityKey, ActiveIdentitiesData> getActiveIdentitiesCache() {
+    return activeIdentitiesCache;
   }
 }

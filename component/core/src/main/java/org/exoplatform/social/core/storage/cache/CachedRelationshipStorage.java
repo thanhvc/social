@@ -17,6 +17,15 @@
 
 package org.exoplatform.social.core.storage.cache;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
@@ -43,13 +52,8 @@ import org.exoplatform.social.core.storage.cache.model.key.RelationshipType;
 import org.exoplatform.social.core.storage.cache.model.key.SuggestionKey;
 import org.exoplatform.social.core.storage.cache.selector.RelationshipCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.SuggestionCacheSelector;
+import org.exoplatform.social.core.storage.impl.AbstractStorage;
 import org.exoplatform.social.core.storage.impl.RelationshipStorageImpl;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Cache support for RelationshipStorage.
@@ -57,7 +61,7 @@ import java.util.Map.Entry;
  * @author <a href="mailto:alain.defrance@exoplatform.com">Alain Defrance</a>
  * @version $Revision$
  */
-public class CachedRelationshipStorage implements RelationshipStorage {
+public class CachedRelationshipStorage extends AbstractStorage implements RelationshipStorage {
 
   /** Logger */
   private static final Log LOG = ExoLogger.getLogger(CachedRelationshipStorage.class);
@@ -359,6 +363,37 @@ public class CachedRelationshipStorage implements RelationshipStorage {
       return null;
     }
 
+  }
+  
+  @Override
+  public boolean hasRelationship(Identity identity1, Identity identity2, String relationshipPath) throws RelationshipStorageException {
+    RelationshipIdentityKey key = new RelationshipIdentityKey(identity2.getId(), identity1.getId());
+    RelationshipKey gotKey = exoRelationshipByIdentityCache.get(key);
+    if (gotKey != null && ! gotKey.equals(RELATIONSHIP_NOT_FOUND)) {
+      return true;
+    }
+    
+    key = new RelationshipIdentityKey(identity1.getId(), identity2.getId());
+    gotKey = exoRelationshipByIdentityCache.get(key);
+    if (gotKey != null && ! gotKey.equals(RELATIONSHIP_NOT_FOUND)) {
+      return true;
+    }
+    
+    try {
+      Node relationshipNode = node(relationshipPath.toString());
+      if (relationshipNode != null) {
+        RelationshipKey k;
+
+        k = new RelationshipKey(relationshipNode.getUUID());
+
+        exoRelationshipByIdentityCache.put(key, k);
+        return true;
+      }
+    } catch (RepositoryException e) {
+      throw new RelationshipStorageException(RelationshipStorageException.Type.FAILED_TO_GET_RELATIONSHIP_OF_THEM, e.getMessage());
+    }
+    
+    return false;
   }
 
   /**
