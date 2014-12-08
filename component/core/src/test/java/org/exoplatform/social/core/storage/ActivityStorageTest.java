@@ -1085,6 +1085,7 @@ public class ActivityStorageTest extends AbstractCoreTest {
       ExoSocialActivity activity = new ExoSocialActivityImpl();
       activity.setTitle("activity title " + i);
       activity.setPosterId(demoIdentity.getId());
+      activity.setUserId(demoIdentity.getId());
       activityStorage.saveActivity(spaceIdentity, activity);
       tearDownActivityList.add(activity);
     }

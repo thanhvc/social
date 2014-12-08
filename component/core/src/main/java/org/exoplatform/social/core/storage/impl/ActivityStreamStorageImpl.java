@@ -208,7 +208,7 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
     int i = createRefForActiveUsers(poster, activityEntity, filer, activateUsers);
     trace.end();
     if (i > 0) {
-      LOG.info("loop times = " + i + trace.toString());
+      LOG.debug("loop times = " + i + trace.toString());
     }
   }
   
@@ -1296,29 +1296,22 @@ public class ActivityStreamStorageImpl extends AbstractStorage implements Activi
       ActivityRefListEntity listRef = type.create(identityEntity);
       // keep last migration
       ExoSocialActivity entity = activities.get(activities.size() - 1);
-      Long value = entity.getUpdated() != null ? entity.getUpdated().getTime() : entity.getPostedTime();
-      Long oldLastMigration = listRef.getLastMigration();
-      listRef.setLastMigration(value.longValue());
-      //don't increase with lazy migration.
-      Integer numberOfStream = listRef.getNumber();
+      if (entity != null) {
+        Long value = entity.getUpdated() != null ? entity.getUpdated().getTime() : entity.getPostedTime();
+        listRef.setLastMigration(value.longValue());
+      }
       
       //
       for (ExoSocialActivity a : activities) {
+        if (a == null) continue;
+        //
         ActivityEntity activityEntity = getSession().findById(ActivityEntity.class, a.getId());
         boolean hideValue = getHidableMixinValue(activityEntity, HidableEntity.class, true);
-        
 
         // migration 3.5.x => 4.x, lastUpdated of Activity is NULL, then use
         // createdDate for replacement
         ActivityRef ref = listRef.getOrCreated(activityEntity, hideValue);
         ref.setActivityEntity(activityEntity);
-      }
-      
-      //StorageUtils.getNode(identityEntity).save();
-      //getSession().save();
-      //don't increase with lazy migration if has any migration before
-      if (oldLastMigration != null && oldLastMigration.longValue() > 0) {
-        listRef.setNumber(numberOfStream);
       }
     } catch (NodeNotFoundException e) {
       LOG.warn("Failed to create Activity references and the exeception : " + e.getMessage());

@@ -759,7 +759,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
       long i = remaind;
       // fill to enough limit
       for (ExoSocialActivity activity : origin) {
-        if (got.contains(activity) == false) {
+        if (activity != null && got.contains(activity) == false) {
           got.add(activity);
           migrateList.add(activity);
           if (--i == 0) {
@@ -1737,7 +1737,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
       int i = remaind;
       // fill to enough limit
       for (ExoSocialActivity activity : origin) {
-        if (got.contains(activity) == false) {
+        if (activity != null && got.contains(activity) == false) {
           got.add(activity);
           migrateList.add(activity);
           if (--i == 0) {
@@ -2075,7 +2075,11 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     List<ExoSocialActivity> activities =  new ArrayList<ExoSocialActivity>();
 
     while(results.hasNext()) {
-      activities.add(getStorage().getActivity(results.next().getId()));
+      ExoSocialActivity a = getStorage().getActivity(results.next().getId());
+      if (a != null) {
+        activities.add(a);
+      }
+      
     }
 
     return activities;
@@ -3164,7 +3168,7 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
 
     ActivityFilter filter = new ActivityFilter(){};
     //
-    return getActivitiesOfIdentities (ActivityBuilderWhere.simple().poster(owner).mentioner(owner).commenter(owner).liker(owner).owners(owner), filter, offset, limit);
+    return getActivitiesOfIdentities(ActivityBuilderWhere.simple().poster(owner).mentioner(owner).commenter(owner).liker(owner).owners(owner), filter, offset, limit);
   }
 
   @Override

@@ -77,7 +77,7 @@ public class ActivityPersister implements Persister {
           StorageUtils.persist();
           persisterScheduler.countDown();
           logWatch.stop();
-          LOG.info(changes.size() + " streams affected, consumed time: " + logWatch.getElapsedTime() + "ms");
+          LOG.debug(changes.size() + " streams affected, consumed time: " + logWatch.getElapsedTime() + "ms");
         }
       }
     }

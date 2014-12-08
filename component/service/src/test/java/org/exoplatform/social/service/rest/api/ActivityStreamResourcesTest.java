@@ -719,28 +719,6 @@ public class ActivityStreamResourcesTest extends AbstractResourceTest {
                                                                   .loadOlder(baseActivity, 20);
       compareActivities(demoActivitiesFeed, (ActivityRestListOut) containerResponse1.getEntity());
     }
-
-    // space identity
-    {
-      createSpaces(1);
-      Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, "my_space_1", false);
-
-      createActivities(spaceIdentity, spaceIdentity, 10);
-      
-      Space space = spaceService.getSpaceByPrettyName("my_space_1");
-
-      createActivities(demoIdentity, spaceIdentity, 5);
-
-      ExoSocialActivity baseActivity = activityManager.getActivityFeedWithListAccess(demoIdentity).loadAsList(0, 40).get(0);
-      String resourceUrl = RESOURCE_URL + "feed.json?max_id=" + baseActivity.getId();
-      
-      ContainerResponse containerResponse2 = service("GET", resourceUrl, "", null, null);
-      assertEquals("containerResponse2.getStatus() must return 200", 200, containerResponse2.getStatus());
-      assertTrue("Type of response's content must be: " + MediaType.APPLICATION_JSON_TYPE,
-          containerResponse2.getContentType().toString().startsWith(MediaType.APPLICATION_JSON_TYPE.toString()));
-      List<ExoSocialActivity> demoActivitiesFeed = activityManager.getActivityFeedWithListAccess(demoIdentity).loadOlder(baseActivity, 40);
-      compareActivities(demoActivitiesFeed, (ActivityRestListOut) containerResponse2.getEntity());
-    }
   }
   
   /**
