@@ -36,7 +36,6 @@ import org.exoplatform.commons.api.notification.service.storage.IntranetNotifica
 import org.exoplatform.commons.notification.impl.NotificationContextImpl;
 import org.exoplatform.commons.notification.net.WebSocketBootstrap;
 import org.exoplatform.commons.notification.net.WebSocketServer;
-import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
@@ -48,7 +47,6 @@ import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.manager.RelationshipManager;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
-import org.vertx.java.core.json.JsonObject;
 
 /**
  * Created by The eXo Platform SAS
@@ -62,6 +60,7 @@ public class IntranetNotificationRestService implements ResourceContainer {
   private IdentityManager identityManager;
   private RelationshipManager relationshipManager;
   private SpaceService spaceService;
+  private IntranetNotificationDataStorage intranetNotificationDataStorage;
 
   /**
    * Processes the "Accept the invitation to connect" action between 2 users and update notification.
@@ -262,6 +261,13 @@ public class IntranetNotificationRestService implements ResourceContainer {
     return relationshipManager;
   }
   
+  private IntranetNotificationDataStorage getIntranetNotificationDataStorage() {
+    if (intranetNotificationDataStorage == null) {
+      intranetNotificationDataStorage = (IntranetNotificationDataStorage) getPortalContainer().getComponentInstanceOfType(IntranetNotificationDataStorage.class);
+    }
+    return intranetNotificationDataStorage;
+  }
+  
   /**
    * Gets a Portal Container instance.
    * @return The PortalContainer.
@@ -278,7 +284,7 @@ public class IntranetNotificationRestService implements ResourceContainer {
   private void sendBackNotification(NotificationInfo notification) {
     NotificationContext nCtx = NotificationContextImpl.cloneInstance().setNotificationInfo(notification);
     try {
-      String channelId = CommonsUtils.getService(IntranetNotificationDataStorage.class).getChannelId();
+      String channelId = getIntranetNotificationDataStorage().getChannelId();
       notification.setLastModifiedDate(Calendar.getInstance());
       AbstractChannel channelPlugin = nCtx.getChannelManager().get(channelId);
       if (channelPlugin != null) {
@@ -287,6 +293,7 @@ public class IntranetNotificationRestService implements ResourceContainer {
           String message = templateHandler.makeMessage(nCtx).getBody();
           WebSocketBootstrap.sendJsonMessage(WebSocketServer.NOTIFICATION_WEB_IDENTIFIER, notification.getTo(), message);
         }
+        getIntranetNotificationDataStorage().save(notification);
       }
     } catch (Exception e) {
       System.out.println("error : " + e.getMessage());
