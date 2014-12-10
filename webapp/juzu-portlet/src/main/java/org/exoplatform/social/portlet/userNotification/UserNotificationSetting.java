@@ -399,15 +399,15 @@ public class UserNotificationSetting {
     public boolean isActive() {
       return isActive;
     }
-    public String render() {
+    public String render(String label) {
       String name = channelId + pluginId;
-      StringBuffer buffer = new StringBuffer("<span class=\"uiCheckbox\">");
+      StringBuffer buffer = new StringBuffer("<label class=\"uiCheckbox\" for=\"").append(name).append("\">");
       buffer.append("<input type=\"checkbox\" class=\"checkbox\" ")
             .append((isChecked == true) ? "checked=\"checked\" " : "")
             .append((isActive == false) ? "disabled " : "")
             .append("name=\"").append(name).append("\" id=\"").append(name).append("\" ")
             .append("data-channel=\"").append(channelId).append("\" />")
-            .append("<span></span></span>");
+            .append("<span>").append(label).append("</span></label>");
       return buffer.toString();
     }
   }
