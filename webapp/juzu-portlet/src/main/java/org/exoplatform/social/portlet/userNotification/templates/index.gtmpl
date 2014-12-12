@@ -1,7 +1,6 @@
 #{param name=_ctx/}
 #{param name=groups/}
 #{param name=hasActivePlugin/}
-#{param name=emailCheckBoxList/}
 #{param name=emailSelectBoxList/}
 #{param name=emailChannel/}
 #{param name=channels/}
@@ -103,52 +102,42 @@
 									boolean isNotActive = true;
 									for(channel in channels) {
 									  String enabled = channelStatus.get(channel);
+									  String checkBoxId = channel + pluginId;
+									  def channelCheckBox = channelCheckBoxList.get(checkBoxId);
 								%>
 									<div class="view-mode status-${enabled}">
-									<% if(channel.equals(emailChannel)) {
-										  def checkBox = emailCheckBoxList.get(pluginId);
+									<% 
+									  if(channelCheckBox != null && channelCheckBox.isChecked()) {
+										  isNotActive = false;
+										  print("<div class=\"the-checkbox\"><i class=\"uiIconPLF"+channel+"\"></i> " + _ctx.appRes("UINotification.label.checkbox-" + channel) + "</div>");
+										}
+									  if(channel.equals(emailChannel)) {
 											def selectBox = emailSelectBoxList.get(pluginId);
-											if(checkBox != null && checkBox.isChecked()) {
-											  isNotActive = false;
-											  print("<div class=\"the-checkbox\"><i class=\"uiIconPLF"+channel+"\"></i> " + _ctx.appRes("UINotification.label.checkbox-" + channel) + "</div>");
-											}
 											if(selectBox != null && selectBox.isActiveSend()) {
 											  isNotActive = false;
 											  print("<div class=\"the-selectBox\"><i class=\"uiIconPLF"+channel+"\"></i> "
 															+ _ctx.appRes("UINotification.label.selectBox-" + channel) + ": <strong>" + selectBox.getValueLabel() + "</strong></div>");
 											}
-										} else {
-										  String checkBoxId = channel + pluginId;
-										  def channelCheckBox = channelCheckBoxList.get(checkBoxId);
-										  if(channelCheckBox != null && channelCheckBox.isChecked()) {
-											  isNotActive = false;
-											  print("<div class=\"the-checkbox\"><i class=\"uiIconPLF"+channel+"\"></i> " + _ctx.appRes("UINotification.label.checkbox-" + channel) + "</div>");
-											}
 										}
 									%>
 									</div>
 									<div class="edit-mode status-${enabled}">
-									 <% if(channel.equals(emailChannel)) {
-										  def checkBox = emailCheckBoxList.get(pluginId);
+									 <% 
+								    if(channelCheckBox != null) {
+								      print(channelCheckBox.render(_ctx.appRes("UINotification.label.checkbox-" + channel)));
+									  }
+									 if(channel.equals(emailChannel)) {
 											def selectBox = emailSelectBoxList.get(pluginId);
-											if(checkBox != null) {
-											  print(checkBox.render(_ctx.appRes("UINotification.label.checkbox-" + channel)));
-											}
 											if(selectBox != null) {
 											  print("<div><span class=\"uiCheckbox\"></span><span class=\"labelForm\">" + _ctx.appRes("UINotification.label.selectBox-" + channel) + " </span>"
 											      + selectBox.render() + "</div>");
-											}
-										} else {
-										    def channelCheckBox = channelCheckBoxList.get(channel + pluginId);
-										    if(channelCheckBox != null) {
-										    	print(channelCheckBox.render(_ctx.appRes("UINotification.label.checkbox-" + channel)));
 											}
 										}
 									%>
 									</div>
 								<%}
 									if(isNotActive) {
-									 	print("<span class=\"view-mode status-false\">No notifications</span>");
+									 	print("<span class=\"view-mode status-false\">" + _ctx.appRes("UINotification.label.NoNotifications") + "</span>");
 									}
 								%>
 								</div>
