@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-import org.apache.directmemory.DirectMemory;
 import org.apache.directmemory.cache.CacheService;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
@@ -45,8 +44,6 @@ import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
 import org.exoplatform.social.core.storage.cache.model.key.IdentityKey;
 import org.exoplatform.social.core.storage.cache.model.key.ListActivitiesKey;
 import org.exoplatform.social.core.storage.cache.ofheap.FutureOfHeapCache;
-import org.exoplatform.social.core.storage.cache.selector.ActivityOwnerCacheSelector;
-import org.exoplatform.social.core.storage.cache.selector.ActivityStreamOwnerCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ScopeCacheSelector;
 import org.exoplatform.social.core.storage.impl.ActivityBuilderWhere;
 import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
@@ -92,6 +89,7 @@ public class CachedActivityStorage implements ActivityStorage {
    */
   void clearOwnerStreamCache(String streamOwner) {
     try {
+      //TODO needs to uncomment this code
       //exoActivityCache.select(new ActivityStreamOwnerCacheSelector(streamOwner));
     }
     catch (Exception e) {
@@ -159,8 +157,6 @@ public class CachedActivityStorage implements ActivityStorage {
     this.storage.setStorage(this);
 
     //
-    //this.exoActivityCache = cacheService.getActivityCache();
-    
     this.exoActivityCache = cacheService.getActivityCache();
     
     this.exoActivitiesCountCache = cacheService.getActivitiesCountCache();

@@ -17,6 +17,16 @@
 
 package org.exoplatform.social.core.storage.cache;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+
+import org.apache.directmemory.cache.CacheService;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
@@ -46,16 +56,6 @@ import org.exoplatform.social.core.storage.cache.selector.SuggestionCacheSelecto
 import org.exoplatform.social.core.storage.impl.AbstractStorage;
 import org.exoplatform.social.core.storage.impl.RelationshipStorageImpl;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
-
 /**
  * Cache support for RelationshipStorage.
  *
@@ -82,7 +82,7 @@ public class CachedRelationshipStorage extends AbstractStorage implements Relati
   private final FutureExoCache<SuggestionKey, SuggestionsData, ServiceContext<SuggestionsData>> suggestionCache;
 
   //
-  private final ExoCache<IdentityKey, IdentityData> exoIdentityCache;
+  private final CacheService<IdentityKey, IdentityData> exoIdentityCache;
 
   //
   private final RelationshipStorageImpl storage;

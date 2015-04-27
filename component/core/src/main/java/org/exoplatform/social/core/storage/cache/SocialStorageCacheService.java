@@ -57,9 +57,9 @@ import org.exoplatform.social.core.storage.cache.model.key.SuggestionKey;
 public class SocialStorageCacheService {
 
   // IdentityStorage
-  private final ExoCache<IdentityKey, IdentityData> identityCache;
+  private final org.apache.directmemory.cache.CacheService<IdentityKey, IdentityData> identityCache;
   private final ExoCache<IdentityCompositeKey, IdentityKey> identityIndexCache;
-  private final ExoCache<IdentityKey, ProfileData> profileCache;
+  private final org.apache.directmemory.cache.CacheService<IdentityKey, ProfileData> profileCache;
   private final ExoCache<IdentityFilterKey, IntegerData> countIdentitiesCache;
   private final ExoCache<ListIdentitiesKey, ListIdentitiesData> identitiesCache;
   private final ExoCache<ActiveIdentityKey, ActiveIdentitiesData> activeIdentitiesCache;
@@ -88,9 +88,22 @@ public class SocialStorageCacheService {
 
   public SocialStorageCacheService(CacheService cacheService) {
     
-    this.identityCache = CacheType.IDENTITY.getFromService(cacheService);
+    this.identityCache = new DirectMemory<IdentityKey, IdentityData>().setNumberOfBuffers(10)
+                                                                      .setSize(10000)
+                                                                      .setInitialCapacity(100000)
+                                                                      .setConcurrencyLevel(4)
+                                                                      .setDisposalTime(720000)
+                                                                      .newCacheService();
+    
+    
     this.identityIndexCache = CacheType.IDENTITY_INDEX.getFromService(cacheService);
-    this.profileCache = CacheType.PROFILE.getFromService(cacheService);
+    this.profileCache = new DirectMemory<IdentityKey, ProfileData>().setNumberOfBuffers(10)
+                                                                    .setSize(10000)
+                                                                    .setInitialCapacity(100000)
+                                                                    .setConcurrencyLevel(4)
+                                                                    .setDisposalTime(720000)
+                                                                    .newCacheService();
+    
     this.countIdentitiesCache = CacheType.IDENTITIES_COUNT.getFromService(cacheService);
     this.identitiesCache = CacheType.IDENTITIES.getFromService(cacheService);
     this.activeIdentitiesCache = CacheType.ACTIVE_IDENTITIES.getFromService(cacheService);
@@ -121,15 +134,15 @@ public class SocialStorageCacheService {
 
   }
 
-  public ExoCache<IdentityKey, IdentityData> getIdentityCache() {
+  public org.apache.directmemory.cache.CacheService<IdentityKey, IdentityData> getIdentityCache() {
     return identityCache;
   }
 
   public ExoCache<IdentityCompositeKey, IdentityKey> getIdentityIndexCache() {
     return identityIndexCache;
   }
-
-  public ExoCache<IdentityKey, ProfileData> getProfileCache() {
+  
+  public org.apache.directmemory.cache.CacheService<IdentityKey, ProfileData> getProfileCache() {
     return profileCache;
   }
 

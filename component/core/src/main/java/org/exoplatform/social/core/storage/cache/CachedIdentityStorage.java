@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.directmemory.cache.CacheService;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -49,6 +50,7 @@ import org.exoplatform.social.core.storage.cache.model.key.IdentityKey;
 import org.exoplatform.social.core.storage.cache.model.key.ListIdentitiesKey;
 import org.exoplatform.social.core.storage.cache.model.key.ListSpaceMembersKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceKey;
+import org.exoplatform.social.core.storage.cache.ofheap.FutureOfHeapCache;
 import org.exoplatform.social.core.storage.cache.selector.IdentityCacheSelector;
 import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
 
@@ -63,16 +65,18 @@ public class CachedIdentityStorage implements IdentityStorage {
   /** Logger */
   private static final Log LOG = ExoLogger.getLogger(CachedIdentityStorage.class);
 
-  private final ExoCache<IdentityKey, IdentityData> exoIdentityCache;
+  private final CacheService<IdentityKey, IdentityData> exoIdentityCache;
+  
   private final ExoCache<IdentityCompositeKey, IdentityKey> exoIdentityIndexCache;
-  private final ExoCache<IdentityKey, ProfileData> exoProfileCache;
+  //private final ExoCache<IdentityKey, ProfileData> exoProfileCache;
+  private final CacheService<IdentityKey, ProfileData> exoProfileCache;
   private final ExoCache<IdentityFilterKey, IntegerData> exoIdentitiesCountCache;
   private final ExoCache<ListIdentitiesKey, ListIdentitiesData> exoIdentitiesCache;
   private final ExoCache<ActiveIdentityKey, ActiveIdentitiesData> exoActiveIdentitiesCache;
 
-  private final FutureExoCache<IdentityKey, IdentityData, ServiceContext<IdentityData>> identityCache;
+  private final FutureOfHeapCache<IdentityKey, IdentityData, ServiceContext<IdentityData>> identityCache;
   private final FutureExoCache<IdentityCompositeKey, IdentityKey, ServiceContext<IdentityKey>> identityIndexCache;
-  private final FutureExoCache<IdentityKey, ProfileData, ServiceContext<ProfileData>> profileCache;
+  private final FutureOfHeapCache<IdentityKey, ProfileData, ServiceContext<ProfileData>> profileCache;
   private final FutureExoCache<IdentityFilterKey, IntegerData, ServiceContext<IntegerData>> identitiesCountCache;
   private final FutureExoCache<ListIdentitiesKey, ListIdentitiesData, ServiceContext<ListIdentitiesData>> identitiesCache;
   private final FutureExoCache<ActiveIdentityKey, ActiveIdentitiesData, ServiceContext<ActiveIdentitiesData>> activeIdentitiesCache;
@@ -143,9 +147,9 @@ public class CachedIdentityStorage implements IdentityStorage {
     this.exoActiveIdentitiesCache = cacheService.getActiveIdentitiesCache();
 
     //
-    this.identityCache = CacheType.IDENTITY.createFutureCache(exoIdentityCache);
+    this.identityCache = CacheType.IDENTITY.createFutureOfHeapCache(exoIdentityCache);
     this.identityIndexCache = CacheType.IDENTITY_INDEX.createFutureCache(exoIdentityIndexCache);
-    this.profileCache = CacheType.PROFILE.createFutureCache(exoProfileCache);
+    this.profileCache = CacheType.PROFILE.createFutureOfHeapCache(exoProfileCache);
     this.identitiesCountCache = CacheType.IDENTITIES_COUNT.createFutureCache(exoIdentitiesCountCache);
     this.identitiesCache = CacheType.IDENTITIES.createFutureCache(exoIdentitiesCache);
     this.activeIdentitiesCache = CacheType.ACTIVE_IDENTITIES.createFutureCache(exoActiveIdentitiesCache);
@@ -173,7 +177,7 @@ public class CachedIdentityStorage implements IdentityStorage {
 
     //
     IdentityKey key = new IdentityKey(new Identity(identity.getId()));
-    exoIdentityCache.remove(key);
+    exoIdentityCache.free(key);
     clearCache();
 
     //
@@ -229,11 +233,12 @@ public class CachedIdentityStorage implements IdentityStorage {
 
     //
     IdentityKey key = new IdentityKey(new Identity(identity.getId()));
-    IdentityData data = exoIdentityCache.remove(key);
+    IdentityData data = exoIdentityCache.retrieve(key);
     if (data != null) {
       exoIdentityIndexCache.remove(new IdentityCompositeKey(data.getProviderId(), data.getRemoteId()));
+      exoIdentityCache.free(key);
     }
-    exoProfileCache.remove(key);
+    exoProfileCache.free(key);
     clearCache();
 
   }
@@ -248,11 +253,12 @@ public class CachedIdentityStorage implements IdentityStorage {
 
     //
     IdentityKey key = new IdentityKey(new Identity(identity.getId()));
-    IdentityData data = exoIdentityCache.remove(key);
+    IdentityData data = exoIdentityCache.retrieve(key);
     if (data != null) {
       exoIdentityIndexCache.remove(new IdentityCompositeKey(data.getProviderId(), data.getRemoteId()));
+      exoIdentityCache.free(key);
     }
-    exoProfileCache.remove(key);
+    exoProfileCache.free(key);
     clearCache();
 
   }
@@ -285,11 +291,12 @@ public class CachedIdentityStorage implements IdentityStorage {
    */
   public void clearIdentityCached(Identity identity, String oldRemoteId) {
     IdentityKey key = new IdentityKey(new Identity(identity.getId()));
-    IdentityData data = exoIdentityCache.remove(key);
+    IdentityData data = exoIdentityCache.retrieve(key);
     if (data != null) {
       exoIdentityIndexCache.remove(new IdentityCompositeKey(data.getProviderId(), oldRemoteId));
+      exoIdentityCache.free(key);
     }
-    exoProfileCache.remove(key);
+    exoProfileCache.free(key);
     clearCache();
   }
   
@@ -334,7 +341,7 @@ public class CachedIdentityStorage implements IdentityStorage {
 
     //
     IdentityKey key = new IdentityKey(new Identity(profile.getIdentity().getId()));
-    exoProfileCache.remove(key);
+    exoProfileCache.free(key);
 
   }
 
@@ -348,7 +355,7 @@ public class CachedIdentityStorage implements IdentityStorage {
 
     //
     IdentityKey key = new IdentityKey(new Identity(profile.getIdentity().getId()));
-    exoProfileCache.remove(key);
+    exoProfileCache.free(key);
     clearCache();
 
   }
@@ -529,7 +536,7 @@ public class CachedIdentityStorage implements IdentityStorage {
     storage.updateProfileActivityId(identity, activityId, type);
     //
     IdentityKey key = new IdentityKey(new Identity(identity.getId()));
-    exoProfileCache.remove(key);
+    exoProfileCache.free(key);
     clearCache();
   }
 
