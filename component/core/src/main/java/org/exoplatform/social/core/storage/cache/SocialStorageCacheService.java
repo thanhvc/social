@@ -17,6 +17,7 @@
 
 package org.exoplatform.social.core.storage.cache;
 
+import org.apache.directmemory.DirectMemory;
 import org.exoplatform.services.cache.CacheService;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.social.core.storage.cache.model.data.ActivityData;
@@ -73,7 +74,7 @@ public class SocialStorageCacheService {
   private final ExoCache<SuggestionKey, SuggestionsData> suggestionCache;
 
   // ActivityStorage
-  private final ExoCache<ActivityKey, ActivityData> activityCache;
+  private final org.apache.directmemory.cache.CacheService<ActivityKey, ActivityData> activityCache;
   private final ExoCache<ActivityCountKey, IntegerData> activitiesCountCache;
   private final ExoCache<ListActivitiesKey, ListActivitiesData> activitiesCache;
 
@@ -101,7 +102,13 @@ public class SocialStorageCacheService {
     
     this.suggestionCache = CacheType.SUGGESTIONS.getFromService(cacheService);
 
-    this.activityCache = CacheType.ACTIVITY.getFromService(cacheService);
+    this.activityCache = new DirectMemory<ActivityKey, ActivityData>().setNumberOfBuffers(10)
+                                                                      .setSize(10000)
+                                                                      .setInitialCapacity(100000)
+                                                                      .setConcurrencyLevel(4)
+                                                                      .setDisposalTime(720000)
+                                                                      .newCacheService();
+
     this.activitiesCountCache = CacheType.ACTIVITIES_COUNT.getFromService(cacheService);
     this.activitiesCache = CacheType.ACTIVITIES.getFromService(cacheService);
 
@@ -159,7 +166,7 @@ public class SocialStorageCacheService {
     return relationshipsCache;
   }
 
-  public ExoCache<ActivityKey, ActivityData> getActivityCache() {
+  public org.apache.directmemory.cache.CacheService<ActivityKey, ActivityData> getActivityCache() {
     return activityCache;
   }
 

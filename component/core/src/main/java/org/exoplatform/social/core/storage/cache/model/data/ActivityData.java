@@ -17,9 +17,10 @@
 
 package org.exoplatform.social.core.storage.cache.model.data;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.exoplatform.social.core.activity.model.ActivityStream;
@@ -34,18 +35,19 @@ import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
  */
 public class ActivityData implements CacheData<ExoSocialActivity> {
 
+  
   public final static ActivityData NULL = new ActivityData(new ExoSocialActivityImpl());
   
   private final String id;
   private final String title;
   private final String body;
-  private final String[] likes;
+  private final List<String> likes;
   private final boolean isComment;
   private final boolean isHidden;
   private final boolean isLocked;
   private final Long postedTime;
   private final Long lastUpdated;
-  private final String[] replyIds;
+  private final List<String> replyIds;
   private final String userId;
   private final String appId;
   private final String titleId;
@@ -60,8 +62,8 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
   private final String streamSourceUrl;
   private final String streamTitle;
   private final String streamUrl;
-  private final String[] mentioners;
-  private final String[] commenters;
+  private final List<String> mentioners;
+  private final List<String> commenters;
   private final ActivityStream.Type streamType;
   private final String posterId;
   private final String parentId;
@@ -71,13 +73,13 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     this.id = activity.getId();
     this.title = activity.getTitle();
     this.body = activity.getBody();
-    this.likes = activity.getLikeIdentityIds();
+    this.likes = activity.getLikeIdentityIds() != null && activity.getLikeIdentityIds().length > 0 ? Arrays.asList(activity.getLikeIdentityIds()) : null;
     this.isComment = activity.isComment();
     this.isHidden = activity.isHidden();
     this.isLocked = activity.isLocked();
     this.postedTime = activity.getPostedTime();
     this.lastUpdated = activity.getUpdated().getTime();
-    this.replyIds = activity.getReplyToId();
+    this.replyIds = activity.getReplyToId() != null && activity.getReplyToId().length > 0 ? Arrays.asList(activity.getReplyToId()) : null;
     this.userId = activity.getUserId();
     this.appId = activity.getAppId();
     this.titleId = activity.getTitleId();
@@ -91,17 +93,17 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     this.streamSourceUrl = activity.getStreamSourceUrl();
     this.streamTitle = activity.getStreamTitle();
     this.streamUrl = activity.getStreamUrl();
-    this.mentioners = activity.getMentionedIds();
-    this.commenters = activity.getCommentedIds();
+    this.mentioners =  activity.getMentionedIds() != null && activity.getMentionedIds().length > 0 ? Arrays.asList(activity.getMentionedIds()) : null;
+    this.commenters =  activity.getCommentedIds() != null && activity.getCommentedIds().length > 0 ? Arrays.asList(activity.getCommentedIds()) : null;
     this.streamType = activity.getActivityStream().getType();
     this.posterId = activity.getPosterId();
     this.parentId = activity.getParentId();
 
     if (activity.getTemplateParams() != null) {
-      this.templateParams = Collections.unmodifiableMap(activity.getTemplateParams());
+      this.templateParams = activity.getTemplateParams();
     }
     else {
-      this.templateParams = Collections.emptyMap();
+      this.templateParams = null;
     }
 
   }
@@ -114,12 +116,17 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     }
     
     ExoSocialActivity activity = new ExoSocialActivityImpl();
-
     activity.setId(id);
     activity.setTitle(title);
     activity.setBody(body);
-    if (likes != null) { activity.setLikeIdentityIds(likes); }
-    activity.setReplyToId(replyIds);
+    if (likes != null) { 
+      activity.setLikeIdentityIds(likes.toArray(new String[0])); 
+    }
+    if (replyIds != null) {
+      activity.setReplyToId(replyIds.toArray(new String[0]));
+    } else {
+      activity.setReplyToId(new String[0]);
+    }
     activity.isComment(isComment);
     activity.isHidden(isHidden);
     activity.isLocked(isLocked);
@@ -130,11 +137,15 @@ public class ActivityData implements CacheData<ExoSocialActivity> {
     activity.setTitleId(titleId);
     activity.setBodyId(bodyId);
     activity.setType(type);
-    activity.setTemplateParams(new LinkedHashMap<String, String>(templateParams));
+    if (templateParams != null) activity.setTemplateParams(new LinkedHashMap<String, String>(templateParams));
     activity.setExternalId(externalId);
     activity.setUrl(url);
-    if (mentioners != null) { activity.setMentionedIds(mentioners); }
-    if (commenters != null) { activity.setCommentedIds(commenters); }
+    if (mentioners != null) {
+      activity.setMentionedIds(mentioners.toArray(new String[0]));
+    }
+    if (commenters != null) {
+      activity.setCommentedIds(commenters.toArray(new String[0]));
+    }
     activity.setPosterId(posterId);
     activity.setParentId(parentId);
 
