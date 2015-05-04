@@ -50,7 +50,7 @@ import org.exoplatform.social.core.storage.cache.model.key.IdentityKey;
 import org.exoplatform.social.core.storage.cache.model.key.ListIdentitiesKey;
 import org.exoplatform.social.core.storage.cache.model.key.ListSpaceMembersKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceKey;
-import org.exoplatform.social.core.storage.cache.ofheap.FutureOfHeapCache;
+import org.exoplatform.social.core.storage.cache.ofheap.FutureOffHeapCache;
 import org.exoplatform.social.core.storage.cache.selector.IdentityCacheSelector;
 import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
 
@@ -74,9 +74,9 @@ public class CachedIdentityStorage implements IdentityStorage {
   private final ExoCache<ListIdentitiesKey, ListIdentitiesData> exoIdentitiesCache;
   private final ExoCache<ActiveIdentityKey, ActiveIdentitiesData> exoActiveIdentitiesCache;
 
-  private final FutureOfHeapCache<IdentityKey, IdentityData, ServiceContext<IdentityData>> identityCache;
+  private final FutureOffHeapCache<IdentityKey, IdentityData, ServiceContext<IdentityData>> identityCache;
   private final FutureExoCache<IdentityCompositeKey, IdentityKey, ServiceContext<IdentityKey>> identityIndexCache;
-  private final FutureOfHeapCache<IdentityKey, ProfileData, ServiceContext<ProfileData>> profileCache;
+  private final FutureOffHeapCache<IdentityKey, ProfileData, ServiceContext<ProfileData>> profileCache;
   private final FutureExoCache<IdentityFilterKey, IntegerData, ServiceContext<IntegerData>> identitiesCountCache;
   private final FutureExoCache<ListIdentitiesKey, ListIdentitiesData, ServiceContext<ListIdentitiesData>> identitiesCache;
   private final FutureExoCache<ActiveIdentityKey, ActiveIdentitiesData, ServiceContext<ActiveIdentitiesData>> activeIdentitiesCache;

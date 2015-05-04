@@ -43,7 +43,7 @@ import org.exoplatform.social.core.storage.cache.model.key.ActivityKey;
 import org.exoplatform.social.core.storage.cache.model.key.ActivityType;
 import org.exoplatform.social.core.storage.cache.model.key.IdentityKey;
 import org.exoplatform.social.core.storage.cache.model.key.ListActivitiesKey;
-import org.exoplatform.social.core.storage.cache.ofheap.FutureOfHeapCache;
+import org.exoplatform.social.core.storage.cache.ofheap.FutureOffHeapCache;
 import org.exoplatform.social.core.storage.cache.selector.ScopeCacheSelector;
 import org.exoplatform.social.core.storage.impl.ActivityBuilderWhere;
 import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
@@ -62,7 +62,7 @@ public class CachedActivityStorage implements ActivityStorage {
   private final ExoCache<ActivityCountKey, IntegerData> exoActivitiesCountCache;
   private final ExoCache<ListActivitiesKey, ListActivitiesData> exoActivitiesCache;
 
-  private final FutureOfHeapCache<ActivityKey, ActivityData, ServiceContext<ActivityData>> activityCache;
+  private final FutureOffHeapCache<ActivityKey, ActivityData, ServiceContext<ActivityData>> activityCache;
   private final FutureExoCache<ActivityCountKey, IntegerData, ServiceContext<IntegerData>> activitiesCountCache;
   private final FutureExoCache<ListActivitiesKey, ListActivitiesData, ServiceContext<ListActivitiesData>> activitiesCache;
 

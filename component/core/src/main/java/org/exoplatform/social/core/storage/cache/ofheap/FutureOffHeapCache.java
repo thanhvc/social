@@ -28,12 +28,12 @@ import org.exoplatform.social.core.storage.cache.FutureCache;
  *          exo@exoplatform.com
  * Apr 27, 2015  
  */
-public class FutureOfHeapCache<K extends Serializable, V extends Serializable, C> extends FutureCache<K, V, C> {
+public class FutureOffHeapCache<K extends Serializable, V extends Serializable, C> extends FutureCache<K, V, C> {
 
   /** . */
   private final CacheService<K, V> cache;
 
-  public FutureOfHeapCache(Loader<K, V, C> loader, CacheService<K, V> cache) {
+  public FutureOffHeapCache(Loader<K, V, C> loader, CacheService<K, V> cache) {
     super(loader);
 
     //

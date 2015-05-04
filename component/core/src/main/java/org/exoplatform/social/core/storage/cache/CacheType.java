@@ -22,7 +22,7 @@ import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.social.core.storage.cache.loader.CacheLoader;
 import org.exoplatform.social.core.storage.cache.loader.ServiceContext;
 import org.exoplatform.social.core.storage.cache.model.key.CacheKey;
-import org.exoplatform.social.core.storage.cache.ofheap.FutureOfHeapCache;
+import org.exoplatform.social.core.storage.cache.ofheap.FutureOffHeapCache;
 
 import java.io.Serializable;
 
@@ -85,8 +85,8 @@ public enum CacheType {
 
   }
   
-  public <K extends CacheKey, V extends Serializable> FutureOfHeapCache<K, V, ServiceContext<V>> createFutureOfHeapCache(org.apache.directmemory.cache.CacheService<K, V> cache) {
-    return new FutureOfHeapCache<K, V, ServiceContext<V>>(new CacheLoader<K, V>(), cache);
+  public <K extends CacheKey, V extends Serializable> FutureOffHeapCache<K, V, ServiceContext<V>> createFutureOfHeapCache(org.apache.directmemory.cache.CacheService<K, V> cache) {
+    return new FutureOffHeapCache<K, V, ServiceContext<V>>(new CacheLoader<K, V>(), cache);
  }
 
 }
