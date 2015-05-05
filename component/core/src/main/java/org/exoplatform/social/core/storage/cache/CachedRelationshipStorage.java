@@ -51,6 +51,7 @@ import org.exoplatform.social.core.storage.cache.model.key.RelationshipIdentityK
 import org.exoplatform.social.core.storage.cache.model.key.RelationshipKey;
 import org.exoplatform.social.core.storage.cache.model.key.RelationshipType;
 import org.exoplatform.social.core.storage.cache.model.key.SuggestionKey;
+import org.exoplatform.social.core.storage.cache.ofheap.FutureOffHeapCache;
 import org.exoplatform.social.core.storage.cache.selector.RelationshipCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.SuggestionCacheSelector;
 import org.exoplatform.social.core.storage.impl.AbstractStorage;
@@ -68,14 +69,14 @@ public class CachedRelationshipStorage extends AbstractStorage implements Relati
   private static final Log LOG = ExoLogger.getLogger(CachedRelationshipStorage.class);
 
   //
-  private final ExoCache<RelationshipKey, RelationshipData> exoRelationshipCache;
+  private final CacheService<RelationshipKey, RelationshipData> exoRelationshipCache;
   private final ExoCache<RelationshipIdentityKey, RelationshipKey> exoRelationshipByIdentityCache;
   private final ExoCache<RelationshipCountKey, IntegerData> exoRelationshipCountCache;
   private final ExoCache<ListRelationshipsKey, ListIdentitiesData> exoRelationshipsCache;
   private final ExoCache<SuggestionKey, SuggestionsData> exoSuggestionCache;
 
   //
-  private final FutureExoCache<RelationshipKey, RelationshipData, ServiceContext<RelationshipData>> relationshipCache;
+  private final FutureOffHeapCache<RelationshipKey, RelationshipData, ServiceContext<RelationshipData>> relationshipCache;
   private final FutureExoCache<RelationshipIdentityKey,RelationshipKey,ServiceContext<RelationshipKey>> relationshipCacheIdentity;
   private final FutureExoCache<RelationshipCountKey, IntegerData, ServiceContext<IntegerData>> relationshipsCount;
   private final FutureExoCache<ListRelationshipsKey, ListIdentitiesData, ServiceContext<ListIdentitiesData>> relationshipsCache;
@@ -204,7 +205,7 @@ public class CachedRelationshipStorage extends AbstractStorage implements Relati
     this.exoSuggestionCache = cacheService.getSuggestionCache();
 
     //
-    this.relationshipCache = CacheType.RELATIONSHIP.createFutureCache(exoRelationshipCache);
+    this.relationshipCache = CacheType.RELATIONSHIP.createFutureOfHeapCache(exoRelationshipCache);
     this.relationshipCacheIdentity = CacheType.RELATIONSHIP_FROM_IDENTITY.createFutureCache(exoRelationshipByIdentityCache);
     this.relationshipsCount = CacheType.RELATIONSHIPS_COUNT.createFutureCache(exoRelationshipCountCache);
     this.relationshipsCache = CacheType.RELATIONSHIPS.createFutureCache(exoRelationshipsCache);
@@ -244,7 +245,7 @@ public class CachedRelationshipStorage extends AbstractStorage implements Relati
     storage.removeRelationship(relationship);
 
     //
-    exoRelationshipCache.remove(new RelationshipKey(relationship.getId()));
+    exoRelationshipCache.free(new RelationshipKey(relationship.getId()));
     
     // clear caching.
     if (relationship.getSender() != null && relationship.getReceiver() != null) {

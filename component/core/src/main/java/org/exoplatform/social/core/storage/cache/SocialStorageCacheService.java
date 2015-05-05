@@ -65,7 +65,7 @@ public class SocialStorageCacheService {
   private final ExoCache<ActiveIdentityKey, ActiveIdentitiesData> activeIdentitiesCache;
 
   // RelationshipStorage
-  private final ExoCache<RelationshipKey, RelationshipData> relationshipCache;
+  private final org.apache.directmemory.cache.CacheService<RelationshipKey, RelationshipData> relationshipCache;
   private final ExoCache<RelationshipIdentityKey, RelationshipKey> relationshipCacheByIdentity;
   private final ExoCache<RelationshipCountKey, IntegerData> relationshipsCount;
   private final ExoCache<ListRelationshipsKey, ListIdentitiesData> relationshipsCache;
@@ -108,7 +108,12 @@ public class SocialStorageCacheService {
     this.identitiesCache = CacheType.IDENTITIES.getFromService(cacheService);
     this.activeIdentitiesCache = CacheType.ACTIVE_IDENTITIES.getFromService(cacheService);
 
-    this.relationshipCache = CacheType.RELATIONSHIP.getFromService(cacheService);
+    this.relationshipCache = new DirectMemory<RelationshipKey, RelationshipData>().setNumberOfBuffers(10)
+                                                                                  .setSize(10000)
+                                                                                  .setInitialCapacity(100000)
+                                                                                  .setConcurrencyLevel(4)
+                                                                                  .setDisposalTime(720000)
+                                                                                  .newCacheService();
     this.relationshipCacheByIdentity = CacheType.RELATIONSHIP_FROM_IDENTITY.getFromService(cacheService);
     this.relationshipsCount = CacheType.RELATIONSHIPS_COUNT.getFromService(cacheService);
     this.relationshipsCache = CacheType.RELATIONSHIPS.getFromService(cacheService);
@@ -159,7 +164,7 @@ public class SocialStorageCacheService {
   }
 
 
-  public ExoCache<RelationshipKey, RelationshipData> getRelationshipCache() {
+  public org.apache.directmemory.cache.CacheService<RelationshipKey, RelationshipData> getRelationshipCache() {
     return relationshipCache;
   }
 
